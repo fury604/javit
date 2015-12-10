@@ -1,0 +1,18 @@
+Testsuite: tests.db.DBManagerImplTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 2, Time elapsed: 1.302 sec
+------------- Standard Output ---------------
+20:57:55.583 [main] DEBUG tests.BaseTest - in before
+------------- ---------------- ---------------
+------------- Standard Error -----------------
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/home/fury/work/javit/lib/log4j-slf4j-impl-2.4.1.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/home/fury/work/javit/lib/slf4j-log4j12-1.7.12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.apache.logging.slf4j.Log4jLoggerFactory]
+------------- ---------------- ---------------
+
+Testcase: testUpdateHeaders took 0 sec
+	SKIPPED
+Testcase: testMinMax took 1.284 sec
+Testcase: testGetHeaders took 0 sec
+	SKIPPED

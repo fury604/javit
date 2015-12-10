@@ -1,0 +1,48 @@
+Multipart article id's are currently stored as a colon delimeted
+string:
+
+1234:5678:9012
+
+This comes out to be a long[] in the java code.
+
+This stores the child article ID's for a given multipart article,
+we want to also store the msgid for each of the child articles.
+
+This would be 2 strings for each multipart:
+
+1234:<xyz@news.com>
+
+Currently this is stored as a blob in the DB. This can continue.
+
+The new format to store this information will be in JSON
+format, however we need to ensure sequential accuracy.
+
+{element 0: id: 1234, msgid: <xyz@news.com>}
+
+=========================
+
+Persistance strategy with headers.
+
+Currently, reading the whole header from the DB just 
+grabs the byte_array and reconsitutes the header
+from that. 
+
+We don't want to do that anymore. All we need to do is 
+have the parent header be the sole DB record and update the
+multipart IDs blob.
+
+We should never have to reconstitute the whole header
+when reading from the DB. The getAsBytes and reconsitute
+methods of NntpArticelHeader should be deprecated.
+
+The new ORM model will fetch all columns for a given row
+and know how to recreate the header from the DB data,
+not from the byte stream
+
+The format for the multipart ID's will be like:
+
+{0: [1234,"<msgId>"], 1: [5678,"<msgID>"]}
+
+
+
+

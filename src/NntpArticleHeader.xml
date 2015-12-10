@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="NntpHeaderMapper">
+
+	<resultMap type="net.nexxus.nntp.NntpArticleHeader" id="header">
+        <result property = "id" column = "id"/>
+        <result property = "subject" column = "subject"/>
+        <result property = "from" column = "frm"/>
+        <result property = "date" column = "post_date"/>
+        <result property = "msgID" column = "msgid"/>
+        <result property = "status" column = "status"/>
+        <result property = "bytes" column = "bytes"/>
+        <result property = "totalParts" column = "total_parts"/>
+        <result property = "partsFromJSON" column = "parts"/>
+        <result property = "server" column = "server"/>
+        <result property = "port" column = "port"/>
+        <result property = "group" column = "server_group"/>
+    </resultMap>  
+		
+	<resultMap type="net.nexxus.nntp.NntpArticleHeader" id="header-lite">
+        <result property = "id" column = "id"/>
+        <result property = "subject" column = "subject"/>
+        <result property = "from" column = "frm"/>
+        <result property = "date" column = "post_date"/>
+        <result property = "status" column = "status"/>
+        <result property = "bytes" column = "bytes"/>
+	</resultMap>
+	
+	<resultMap type="java.util.HashMap" id="minmax">
+		<result property = "min" column = "min" />
+		<result property = "max" column = "max" />
+	</resultMap>
+	
+	<select id="getHeadersRange" resultMap="header" parameterType="java.util.Map">
+		select * from ${table} where DATE_FORMAT(post_date, '%Y-%m-%d') > #{cutoff}
+	</select>
+
+	<select id="getHeaders"  resultMap="header" parameterType="java.util.Map">
+		select * from ${table}
+	</select>
+
+	<select id="getHeadersLite"  resultMap="header-lite" parameterType="java.util.Map">
+		select * from ${table}
+	</select>
+
+	<select id="getHeadersRangeLite" resultMap="header-lite" parameterType="java.util.Map">
+		select * from ${table} where DATE_FORMAT(post_date, '%Y-%m-%d') > #{cutoff}
+	</select>
+
+	<select id="getHeader"  resultMap="header" parameterType="java.util.Map">
+		select * from ${table} where id = #{id}
+	</select>
+
+	<select id="getMinMax" resultMap="minmax" parameterType="String">
+		select min(id) as min, max(id) as max from ${value}
+	</select>
+
+	<insert id="insertHeader" parameterType="java.util.Map">
+		replace into ${table}
+		( id, subject, frm, post_date, status, msgid, bytes, parts, total_parts, server, port, server_group ) 
+		values
+		(#{id}, #{subject}, #{frm}, #{post_date}, #{status}, #{msgid},
+		#{bytes}, #{parts}, #{total_parts}, #{server}, #{port}, #{group})
+	</insert>
+
+	<update id="updateStatus" parameterType="java.util.Map">
+		update ${table}
+       	set
+        status = #{status}
+        where id = #{id}
+	</update>
+	
+</mapper>

@@ -1,0 +1,136 @@
+<!--
+   ANT build file for Javit
+-->
+
+<project name="Javit" default="dev" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
+
+  <!-- Javit build file (Ant) -->
+  <property name="app.name"       value="javit"/>
+
+  <!-- where the builds go -->
+  <property name="src.root"   		value="."/>
+  <property name="dist.build.home"      value="${src.root}/dist"/>
+  <property name="dev.build.home"       value="${src.root}/build"/>
+
+
+ <!-- project classpath -->
+  <path id="project.class.path">
+    <pathelement path="${java.class.path}"/>
+  	<fileset dir="lib">
+  		<include name="*.jar"/>
+  	</fileset>
+  </path>
+
+  <property name="test.class.path"  refid="project.class.path"/>
+
+
+  <!--
+    ** init dev target The "dev" target depends on this target.
+    -->
+  <target name="init-dev">
+    <property name="build.dir"     value="${dev.build.home}"/>
+    <property name="build.classes" value="${build.dir}/classes"/>
+    <property name="doc.root"      value="${build.dir}/htdocs"/>
+    <property name="build.lib"     value="${build.dir}/lib"/>
+    <property name="build.etc"     value="${build.dir}/etc"/>
+    <property name="javadoc.home"   value="${doc.root}/javadoc"/>
+  </target>
+
+
+
+  <!--
+    ** configure and invoke developer's build
+    -->
+  <target name="dev" depends="init-dev">
+    <antcall target="compile">
+    </antcall>
+  </target>
+
+
+  <!--
+    ** Clean the directory structure.
+    ** This is used only by developer's build.
+    -->
+  <target name="clean" depends="init-dev">
+    <delete dir="build/classes"/>
+    <delete dir="${build.classes}"/>
+    <delete dir="${build.lib}"/>
+    <delete dir="${build.dir}"/>
+    <!-- delete dir="${dist.build.home}"/ -->
+  </target>
+
+
+  <target name="prepare">
+    <!-- time stamp -->
+    <tstamp/>
+    <mkdir dir="build/classes"/>
+    <mkdir dir="${dist.build.home}"/>
+  	
+  	<ivy:retrieve type="jar" />
+  </target>
+
+
+
+  <!--
+    ** configure and invoke unit tests
+    -->
+  <target name="test" depends="dev, compile">
+    <junit printsummary="yes" haltonfailure="yes" fork="on" maxmemory="6000m">
+   	<classpath>
+       <pathelement path="${test.class.path}" />
+       <pathelement path="${build.dir}/classes"/>
+       <pathelement path="src/tests"/>
+       <!-- pathelement path="${dist.build.home}"/ -->
+     </classpath>
+      <formatter type="plain" />
+      <sysproperty key="src.root" value="${src.root}"/>
+<!--
+      <test name="tests.nntp.NntpGeneralTest" haltonfailure="no"/>
+      <test name="tests.cache.CacheManagerV3Test" haltonfailure="no"/>
+      <test name="tests.orientdb.OrientDBTest" haltonfailure="no"/>
+      <test name="tests.nntp.NntpClientV2Test" haltonfailure="no"/>
+      <test name="tests.search.SolrTest" haltonfailure="no"/>
+      <test name="tests.search.SolrHandlerTest" haltonfailure="no"/>
+      <test name="tests.tasks.DownloadArticleTaskTest" haltonfailure="no"/>
+      <test name="tests.search.SolrQueryFactoryTest" haltonfailure="no"/>
+      <test name="tests.tasks.UpdateHeadersTaskTest" haltonfailure="no"/>
+      
+-->
+        <test name="tests.tasks.UpdateHeadersTaskTest" haltonfailure="no"/>
+        <test name="tests.nntp.NntpClientV2Test" haltonfailure="no"/>
+        <test name="tests.db.DBManagerImplTest" haltonfailure="no"/>
+        <test name="tests.decode.DecodeManagerTest" haltonfailure="no"/>
+    </junit>
+  </target>
+
+  <!--
+    ** compile target
+    -->
+  <target name="compile" depends="clean,prepare">
+    <javac srcdir="src" destdir="build/classes" debug="on"
+           optimize="off" deprecation="on" depend="on" verbose="no">
+           <classpath refid="project.class.path" />
+    </javac>
+  	
+  	<copy todir="build/classes">
+  		<fileset dir="${src.root}/src">
+  			<include name="**/*.xml"/>
+  		</fileset>
+  	</copy>
+  	<!--
+  	<copy todir="build/classes/tests/resources">
+  		<fileset dir="${src.root}/src/tests/resources">
+  			<include name="**/*.txt"/>
+  		</fileset>
+  	</copy>
+  	-->
+  	
+  </target>
+
+  <!--
+    end compile
+    -->
+  
+	
+	
+</project>

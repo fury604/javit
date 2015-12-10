@@ -1,0 +1,25 @@
+NntpClientV2
+
+When assembling multipart articles in getHeaders(), sometimes an
+article ID fails to be added to the headers multipart ID array:
+
+23:50:26.781 [main] WARN  net.nexxus.nntp.NntpClientV2 - addHeaderToMap error: 
+java.lang.ArrayIndexOutOfBoundsException: 275
+
+23:50:26.782 [main] DEBUG net.nexxus.nntp.NntpClientV2 - xover line was: 
+5053292        mergiro [1/7] - "100M" yEnc (276/276)   none@none.com
+   16 Jan 2011 08:14:05 GMT        <part276of274.mjFiEP9hrwlRGDJ41&jf@none.com>            390755  3004    Xref: number.nntp.dca.giganews.com alt.binaries.test.yenc:5053292
+
+23:50:26.782 [main] DEBUG net.nexxus.nntp.NntpClientV2 - additional info 
+parts length: 275 placeholder: 275 with regex value 276
+
+We see here that 275 is out of bounds. The article had 276 parts, corrected
+for array indicies, 275 should be the last element of the array.
+
+However the parts length indicates 275 indicies in the array, which
+means the last element would be 274. So this is perhaps NOT the
+correct header for this part.
+
+
+
+
