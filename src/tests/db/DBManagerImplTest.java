@@ -78,6 +78,36 @@ public class DBManagerImplTest extends BaseTest {
         }
     }
     
+    @Test
+    public void testCreateServerGroups() {
+        try {
+            dbManager.createServerGroups();
+        }
+        catch (Exception e) {
+            Assert.fail("failed creating server groups: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testAddGroup() {
+        try {
+            dbManager.addGroup(nGroup);
+        }
+        catch (Exception e) {
+            Assert.fail("failed adding Group: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testRemoveGroup() {
+        try {
+            dbManager.removeGroup(nGroup);
+        }
+        catch (Exception e) {
+            Assert.fail("failed removing Group: " + e.getMessage());
+        }
+    }
+    
     // get all headers
     private List<NntpArticleHeader> getHeaders() {
         List<NntpArticleHeader> headers = dbManager.getHeaders(nGroup, null);

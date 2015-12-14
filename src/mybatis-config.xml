@@ -22,6 +22,7 @@
   
   <mappers>
     <mapper resource="NntpArticleHeader.xml"/>
+    <mapper resource="NntpGroup.xml"/>
   </mappers>
 
 

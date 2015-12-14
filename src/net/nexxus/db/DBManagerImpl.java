@@ -27,6 +27,7 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
     private static Logger log = LogManager.getLogger(DBManagerImpl.class);
     private String ormConfig = "mybatis-config.xml";
     private SqlSessionFactory sqlFactory;
+    private String groupsTable = "groups_table";
     
     public DBManagerImpl(Properties p) {
         // get setup here
@@ -141,6 +142,47 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
         group.setHighID(max.longValue());
         
         return group;
+    }
+
+    /**
+     * create the NntpGroup List table to keep track of groups
+     * that are being used
+     */
+    public void createServerGroups() throws Exception {
+        SqlSession session = sqlFactory.openSession();
+        session.insert("createGroupsTable", groupsTable);
+        session.commit();
+        session.close();
+    }
+    
+    
+    /**
+     * add an NntpGroup to our groups list
+     */
+    public void addGroup(NntpGroup group) throws Exception {
+        HashMap<String,String> map = new HashMap<String,String>();
+        map.put("table", groupsTable);
+        map.put("server", group.getServer());
+        map.put("name", group.getName());
+        
+        SqlSession session = sqlFactory.openSession();
+        session.insert("addGroup", map);
+        session.commit();
+        session.close();
+    }
+    
+    /**
+     * remove an NntpGroup from our groups list
+     */
+    public void removeGroup(NntpGroup group) throws Exception {
+        HashMap<String,String> map = new HashMap<String,String>();
+        map.put("table", groupsTable);
+        map.put("name", group.getName());
+        
+        SqlSession session = sqlFactory.openSession();
+        session.insert("removeGroup", map);
+        session.commit();
+        session.close();
     }
     
     private String calculateCutoff(Integer cutoff) {

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="NntpGroupMapper">
+
+	<resultMap type="net.nexxus.nntp.NntpGroup" id="group">
+		<result property="server" column="server"/>
+		<result property="name" column="name" />
+	</resultMap>
+	
+	<select id="selectAllGroups" resultMap="group">
+		select * from groups
+	</select>
+	
+	<!-- create the main "groups" table -->
+	<insert id="createGroupsTable" parameterType="String">
+		create table if not exists ${_parameter} (
+			server varchar(50),
+			name   varchar(50),
+			hi     bigint,
+			low    bigint,
+			auto_update tinyint default 0,
+			
+			primary key(server,name)
+		);
+	</insert>
+	
+	<insert id="addGroup" parameterType="java.util.Map">
+		replace into ${table} 
+		(server, name)
+		values
+		(#{server}, #{name})
+	</insert>
+	
+	<delete id="removeGroup" parameterType="java.util.Map">
+		delete from ${table} 
+		where name = #{name}
+	</delete>
+	
+	<!-- create an nntp group table -->
+	<insert id="createGroupTable" parameterType="String">
+		create table if not exists `#{tablename}` (
+			id        bigint primary key,
+			subject   text,
+			frm       varchar(200),
+			post_date date,
+			status    varchar(30),
+			msgid     varchar(200),
+			bytes     varchar(15),
+			parts     longtext,
+			total_parts int,
+			server    varchar(50).
+			port      int,
+			server_group varchar(50)
+		);
+	</insert>
+	
+</mapper>

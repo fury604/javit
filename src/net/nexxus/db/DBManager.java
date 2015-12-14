@@ -7,7 +7,7 @@ import net.nexxus.nntp.NntpArticleHeader;
 import net.nexxus.nntp.NntpGroup;
 
 public interface DBManager extends EventListenerInterface {
-
+    
     public List<NntpArticleHeader> getHeaders(NntpGroup group, Integer cutoff);
     
     public NntpArticleHeader getHeader(NntpGroup group, NntpArticleHeader header) throws Exception;
@@ -20,5 +20,10 @@ public interface DBManager extends EventListenerInterface {
     
     public NntpGroup getGroupMinMax(NntpGroup group) throws Exception;
     
+    public void createServerGroups() throws Exception;
+    
+    public void addGroup(NntpGroup group) throws Exception;
+    
+    public void removeGroup(NntpGroup group) throws Exception;
     
 }

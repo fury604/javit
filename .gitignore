@@ -1,1 +1,8 @@
 test.properties
+.classpath
+.externalToolBuilders
+.project
+.settings
+TEST-*
+lib/*
+bin/*
