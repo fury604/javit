@@ -5,6 +5,7 @@ import java.util.List;
 import net.nexxus.event.EventListenerInterface;
 import net.nexxus.nntp.NntpArticleHeader;
 import net.nexxus.nntp.NntpGroup;
+import net.nexxus.nntp.NntpServer;
 
 public interface DBManager extends EventListenerInterface {
     
@@ -22,8 +23,18 @@ public interface DBManager extends EventListenerInterface {
     
     public void createServerGroups() throws Exception;
     
+    public List<NntpGroup> getGroups() throws Exception;
+    
     public void addGroup(NntpGroup group) throws Exception;
     
     public void removeGroup(NntpGroup group) throws Exception;
+    
+    public void createServerTable() throws Exception;
+    
+    public void addServer(NntpServer server) throws Exception;
+    
+    public NntpServer getServer() throws Exception;
+    
+    public void removeServer(NntpServer server) throws Exception;
     
 }

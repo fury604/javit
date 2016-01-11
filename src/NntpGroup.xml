@@ -10,8 +10,8 @@
 		<result property="name" column="name" />
 	</resultMap>
 	
-	<select id="selectAllGroups" resultMap="group">
-		select * from groups
+	<select id="getGroups" resultMap="group" parameterType="String">
+		select * from ${_parameter} 
 	</select>
 	
 	<!-- create the main "groups" table -->

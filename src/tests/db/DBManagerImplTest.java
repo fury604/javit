@@ -7,6 +7,8 @@ import junit.framework.Assert;
 import net.nexxus.db.DBManager;
 import net.nexxus.db.DBManagerImpl;
 import net.nexxus.nntp.NntpArticleHeader;
+import net.nexxus.nntp.NntpGroup;
+import net.nexxus.nntp.NntpServer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -78,6 +80,8 @@ public class DBManagerImplTest extends BaseTest {
         }
     }
     
+    // Server Group Tests //
+    
     @Test
     public void testCreateServerGroups() {
         try {
@@ -99,6 +103,17 @@ public class DBManagerImplTest extends BaseTest {
     }
     
     @Test
+    public void testGetGroups() {
+        try {
+            List<NntpGroup> groups = dbManager.getGroups();
+            Assert.assertTrue("groups list was empty", groups.size() > 0);
+        }
+        catch (Exception e) {
+            Assert.fail("failed retreiving groups: " + e.getMessage());
+        }
+    }
+    
+    @Test
     public void testRemoveGroup() {
         try {
             dbManager.removeGroup(nGroup);
@@ -107,6 +122,52 @@ public class DBManagerImplTest extends BaseTest {
             Assert.fail("failed removing Group: " + e.getMessage());
         }
     }
+    
+    // Server Table tests //
+    
+    @Test
+    public void testCreateServerTable() {
+        try {
+            dbManager.createServerTable();
+        }
+        catch (Exception e) {
+            Assert.fail("failed creating server table: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testAddServer() {
+        try {
+            dbManager.addServer(nServer);
+        }
+        catch (Exception e) {
+            Assert.fail("failed adding Server: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testGetServer() {
+        try {
+            NntpServer server = dbManager.getServer();
+            Assert.assertNotNull("server was null", server);
+        }
+        catch (Exception e) {
+            Assert.fail("failed retreiving server: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testRemoveServer() {
+        try {
+            dbManager.removeServer(nServer);
+        }
+        catch (Exception e) {
+            Assert.fail("failed removing Server: " + e.getMessage());
+        }
+    }
+    
+    
+    // utility methods
     
     // get all headers
     private List<NntpArticleHeader> getHeaders() {

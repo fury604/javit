@@ -21,6 +21,7 @@ import org.apache.logging.log4j.Logger;
 import net.nexxus.event.EventListenerImpl;
 import net.nexxus.nntp.NntpArticleHeader;
 import net.nexxus.nntp.NntpGroup;
+import net.nexxus.nntp.NntpServer;
 
 public class DBManagerImpl extends EventListenerImpl implements DBManager {
     
@@ -28,6 +29,7 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
     private String ormConfig = "mybatis-config.xml";
     private SqlSessionFactory sqlFactory;
     private String groupsTable = "groups_table";
+    private String serverTable = "server_table";
     
     public DBManagerImpl(Properties p) {
         // get setup here
@@ -145,6 +147,11 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
     }
 
     /**
+     * Methods that handle the internal Groups table
+     * of subscribed groups
+     */
+    
+    /**
      * create the NntpGroup List table to keep track of groups
      * that are being used
      */
@@ -154,7 +161,6 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
         session.commit();
         session.close();
     }
-    
     
     /**
      * add an NntpGroup to our groups list
@@ -185,6 +191,76 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
         session.close();
     }
     
+    /**
+     * return a List of NntpGroups we are subscribed to
+     */
+    public List<NntpGroup> getGroups() throws Exception {
+        SqlSession session = sqlFactory.openSession();
+        List resultSet = session.selectList("getGroups", this.groupsTable);
+        session.close();
+        
+        return resultSet;
+    }
+
+    /**
+     * methods that handle the internal tables for 
+     * dealing with our NntpServer entities
+     */
+    
+    /**
+     * create the needed DB table to hold our 
+     * NntpServer entities 
+     */
+    public void createServerTable() throws Exception {
+        SqlSession session = sqlFactory.openSession();
+        session.insert("createServerTable", serverTable);
+        session.commit();
+        session.close();
+    }
+    
+    /**
+     * add an NntpGroup to our groups list
+     */
+    public void addServer(NntpServer server) throws Exception {
+        HashMap map = new HashMap();
+        map.put("table", serverTable);
+        map.put("server", server.getServer());
+        map.put("port", server.getPort());
+        map.put("username", server.getUsername());
+        map.put("password",  server.getPassword());
+        
+        SqlSession session = sqlFactory.openSession();
+        session.insert("addServer", map);
+        session.commit();
+        session.close();
+    }
+
+    public NntpServer getServer() throws Exception {
+        SqlSession session = sqlFactory.openSession();
+        NntpServer server = (NntpServer)session.selectOne("getServer", this.serverTable);
+        session.close();
+        
+        return server;
+    }
+    
+    /**
+     * remove an NntpServer from our groups list
+     */
+    public void removeServer(NntpServer server) throws Exception {
+        HashMap<String,String> map = new HashMap<String,String>();
+        map.put("table", serverTable);
+        map.put("server", server.getServer());
+        
+        SqlSession session = sqlFactory.openSession();
+        session.insert("removeServer", map);
+        session.commit();
+        session.close();
+    }
+
+    /**
+     * Utility methods follow
+     */
+    
     private String calculateCutoff(Integer cutoff) {
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, -(cutoff.intValue() * 24));
@@ -202,7 +278,6 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
                 Map entry = (Map)iter.next();
                 NntpArticleHeader header = new NntpArticleHeader();
                 header.setID((long)entry.get("id"));
-                
             }
         }
         catch (Exception e) {
@@ -210,6 +285,5 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
         }
         
         return headers;
-        
     }
 }
