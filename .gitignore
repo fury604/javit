@@ -6,3 +6,5 @@ test.properties
 TEST-*
 lib/*
 bin/*
+experimental/*
+dist/*

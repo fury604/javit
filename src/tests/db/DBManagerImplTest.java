@@ -141,6 +141,40 @@ public class DBManagerImplTest extends BaseTest {
         }
     }
     
+    @Test
+    public void testCreateServerGroupList() {
+        try {
+            dbManager.createServerGroupList();
+        }
+        catch (Exception e) {
+            Assert.fail("failed creating server_groups table: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    @Ignore
+    public void testAddGroupToGroupList() {
+        try {
+            dbManager.addServerGroup(nGroup);
+        }
+        catch (Exception e) {
+            Assert.fail("failed adding group to server_groups table: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    @Ignore
+    public void testGetServerGroupList() {
+        try {
+            List<NntpGroup> groups = dbManager.getServerGroups();
+            Assert.assertNotNull(groups);
+        }
+        catch (Exception e) {
+            Assert.fail("failed retrieving groups from server_groups table: " + e.getMessage());
+        }
+    }
+    
+    
     // Server Table tests //
     
     @Test

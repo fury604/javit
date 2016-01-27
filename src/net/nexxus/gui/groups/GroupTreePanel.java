@@ -34,16 +34,20 @@ import org.apache.logging.log4j.Logger;
 
 import java.awt.event.*;
 import java.awt.Font;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 import java.util.TimerTask;
 import java.util.Timer;
 
+import net.nexxus.db.DBManager;
+import net.nexxus.db.DBManagerImpl;
 //import net.nexxus.cache.CacheManager;
 import net.nexxus.event.*;
 //import net.nexxus.gui.article.ArticleTable;
 import net.nexxus.gui.PanelFactory;
 import net.nexxus.task.*;
-//import net.nexxus.util.ComponentManager;
+import net.nexxus.util.ComponentManager;
 import net.nexxus.nntp.*;
 
 
@@ -52,15 +56,13 @@ public class GroupTreePanel extends JTree {
 	public static long AUTO_INTERVAL = 3600000; 
 	public static int AUTO_INTERVAL_MULTIPLIER = 3600000;
 
-	private static JTree tree;
 	private static DefaultTreeModel treeModel;
 	private static RootNode rootNode = new RootNode();
 	private static JPopupMenu popup;
 	private static EventListenerList listenerList = new EventListenerList();
 	private static Timer autoUpdateTimer = new Timer();
 
-	private static final boolean playWithLineStyle = false;
-	private static String lineStyle = "Angled";
+	private ComponentManager componentManager = new ComponentManager();
 
 	private static Logger log = LogManager.getLogger(GroupTreePanel.class.getName());
 
@@ -84,14 +86,32 @@ public class GroupTreePanel extends JTree {
 		this.treeModel = new DefaultTreeModel(rootNode);
 		
 		// try populating the treeModel
-		/*
 		try {
-			CacheManager cm = ComponentManager.getCacheManager();
-			treeModel = (DefaultTreeModel)cm.getGroupTreeModel();
+		    DBManager dbManager = componentManager.getDBManager();
+		    NntpServer server = dbManager.getServer();
+		    if (server == null) {
+		        log.debug("server was null, no server in the DB");
+		    }
+		    else {
+		        ServerNode serverNode = new ServerNode(server);
+		        treeModel.insertNodeInto(serverNode, rootNode, 0);
+		        // next try grabbing subscribed groups
+		        List<NntpGroup> groups = dbManager.getGroups();
+		        if (groups == null || groups.size() == 0) {
+		            log.debug("there were no subscribed groups");
+		        }
+		        else {
+		            Iterator<NntpGroup> iter = groups.iterator();
+		            while (iter.hasNext()) {
+		                NntpGroup group = iter.next();
+		                GroupNode node = new GroupNode(group);
+		                treeModel.insertNodeInto(node, serverNode, 0);
+		            }
+		        }
+		    }
 		} catch (Exception e) {
 			log.error("caught exception loading model from cache " + e.toString());
 		}
-		*/
 
 		setCellRenderer(new GroupTreePanelCellRenderer());
 		setModel(this.treeModel);
@@ -228,7 +248,7 @@ public class GroupTreePanel extends JTree {
 	 *
 	 */
 	private GroupNodePopupMenu getGroupNodePopupMenu() {
-		return new GroupNodePopupMenu("groups for server", tree, treeModel);
+		return new GroupNodePopupMenu("groups for server", this, treeModel);
 	}
 
 	/**
@@ -238,7 +258,7 @@ public class GroupTreePanel extends JTree {
 	 *
 	 */
 	public ServerNodePopupMenu getServerNodePopupMenu() {
-	    return new ServerNodePopupMenu("server name", tree, treeModel);
+	    return new ServerNodePopupMenu("server name", this, treeModel, componentManager.getDBManager());
 	}
 
 
@@ -315,23 +335,14 @@ public class GroupTreePanel extends JTree {
 		//ComponentManager.getCacheManager().storeGroupTreeModel(treeModel);
 	}
 
-
-	//
-	// provide Listener methods
-	// for event system
-	//
-
-
-	// add Listener to GUIevents
 	public void addGUIEventListener(GUIEventListener listener) {
 		listenerList.add(GUIEventListener.class, listener);
 	}
-	// remove Listener to GUIevents
+
 	public void removeGUIEventListener(GUIEventListener listener) {
 		listenerList.remove(GUIEventListener.class, listener);
 	}
 
-	// tell all the Listeners about the Event
 	protected void fireEvent(GUIEvent event) {
 		Object[] listeners = listenerList.getListenerList();
 		for (int i = listeners.length-2; i>=0; i-=2) {

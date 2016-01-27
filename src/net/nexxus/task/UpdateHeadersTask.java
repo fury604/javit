@@ -38,6 +38,7 @@ import net.nexxus.db.DBManager;
 import net.nexxus.event.EventListenerImpl;
 import net.nexxus.event.HeadersUpdateErrorEvent;
 import net.nexxus.event.HeadersUpdatedEvent;
+import net.nexxus.gui.task.TaskInfoPanel;
 import net.nexxus.nntp.NntpClient;
 import net.nexxus.nntp.NntpException;
 import net.nexxus.nntp.NntpGroup;
@@ -89,7 +90,7 @@ public class UpdateHeadersTask extends EventListenerImpl implements RunnableTask
     public void run() {
         try {
             // addListener here
-            //TaskInfoPanel.getInstance().registerTask( Thread.currentThread().getName(), this );
+            TaskInfoPanel.getInstance().registerTask( Thread.currentThread().getName(), this );
             client.connect(server);
             log.debug("about to collect headers, my group has range of: " +
                     group.getLowID() + " - " + group.getHighID());

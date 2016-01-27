@@ -8,13 +8,14 @@
 	<resultMap type="net.nexxus.nntp.NntpGroup" id="group">
 		<result property="server" column="server"/>
 		<result property="name" column="name" />
+		<result property="highID" column="hi" />
+		<result property="lowID" column="low" />
 	</resultMap>
 	
-	<select id="getGroups" resultMap="group" parameterType="String">
-		select * from ${_parameter} 
-	</select>
-	
-	<!-- create the main "groups" table -->
+	<!-- 
+		create the main "groups" table 
+		for storing group subscription info
+	-->
 	<insert id="createGroupsTable" parameterType="String">
 		create table if not exists ${_parameter} (
 			server varchar(50),
@@ -27,6 +28,7 @@
 		);
 	</insert>
 	
+	<!-- add a group the the subscription table -->
 	<insert id="addGroup" parameterType="java.util.Map">
 		replace into ${table} 
 		(server, name)
@@ -34,12 +36,44 @@
 		(#{server}, #{name})
 	</insert>
 	
+	<!-- select groups we are subscribed to -->
+	<select id="getGroups" resultMap="group" parameterType="String">
+		select * from ${_parameter} 
+	</select>
+
+	<!-- remove a group the the subscription table -->
 	<delete id="removeGroup" parameterType="java.util.Map">
 		delete from ${table} 
 		where name = #{name}
 	</delete>
 	
-	<!-- create an nntp group table -->
+	<!-- Server group listing -->
+	
+	<insert id="createGroupListTable">
+		create table if not exists groups (
+		    name varchar(200),
+		    hi bigint,
+		    low bigint
+		);
+	</insert>
+	
+	<select id="getGroupList" resultMap="group">
+		select * from groups
+	</select>
+	
+	<insert id="addGroupToGroupList" parameterType="java.util.Map">
+		insert into groups 
+		(name, hi, low)
+		values
+		(#{name}, #{hi}, #{low})
+	</insert>
+
+	<!-- ArticleHeader table -->	
+	
+	<!-- 
+		create an nntp group article table 
+		to store headers in
+	-->
 	<insert id="createGroupTable" parameterType="String">
 		create table if not exists `#{tablename}` (
 			id        bigint primary key,
@@ -51,7 +85,7 @@
 			bytes     varchar(15),
 			parts     longtext,
 			total_parts int,
-			server    varchar(50).
+			server    varchar(50),
 			port      int,
 			server_group varchar(50)
 		);

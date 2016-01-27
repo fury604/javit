@@ -206,7 +206,7 @@ public class NntpClientV2 extends EventListenerImpl implements NntpClient {
 	 * 
 	 * return an ArrayList of group Strings
 	 */
-	public String getGroupList(NntpServer nServer) throws NntpException {
+	public ArrayList<NntpGroup> getGroupList(NntpServer nServer) throws NntpException {
 		String listCommand = new String(NNTP_CMD_LIST + NEWLINE);
 		try {
 			output.write(listCommand.getBytes(), 0, listCommand.length());
@@ -215,7 +215,7 @@ public class NntpClientV2 extends EventListenerImpl implements NntpClient {
 			throw new NntpException("error: " + ioe.toString());
 		}
 
-		StringBuffer buf = new StringBuffer();
+		ArrayList<NntpGroup> groups = new ArrayList<NntpGroup>();
 		try {
 			while (true) {
 				if (inputControl.ready())
@@ -227,17 +227,42 @@ public class NntpClientV2 extends EventListenerImpl implements NntpClient {
 			// now collect grouplist
 			while (true) {
 				String line = inputControl.readLine();
-				if (line.equals("."))
+				if (line.equals(".")) {
 					break;
-				buf.append(line + "\n");
-
+				}
+				// parse line into an NntpGroup
+				String[] tokens = line.split(" ");
+				if (tokens != null && tokens.length >=3) {
+				    String name = tokens[0];
+				    long hi = 0L;
+				    long low = 0L;
+				    try {
+				        hi = Long.parseLong(tokens[1]);
+				        low = Long.parseLong(tokens[2]);
+				    }
+				    catch (Exception nfe) {
+				        log.error("failed parsing long for group hi - low: " + nfe.getMessage());
+				    }
+				    
+				    long count = hi - low;
+				    if (count > 1) {
+				        NntpGroup group = new NntpGroup();
+				        group.setName(name);
+				        group.setHighID(hi);
+				        group.setLowID(low);
+				        //group.setServer(nServer.getServer());
+				        // add to ArrayList
+				        groups.add(group);
+				    }
+				}
 			}
 		} 
 		catch (IOException ioe) {
 			log.error("got exception collecting groups " + ioe.toString());
 			throw new NntpException(ioe.toString());
 		}
-		return buf.toString();
+		
+		return groups;
 	}
 
 	/**

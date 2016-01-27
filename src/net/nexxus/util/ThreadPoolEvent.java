@@ -15,20 +15,40 @@
  * along with Javit.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Copyright 2005-2016 Richard Stride <fury@nexxus.net>
+ *
+ * Original Copyright 1997-2011 teatrove.org
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * @author Brian S O'Neill
  */
-package net.nexxus.gui.task;
+package net.nexxus.util;
 
-public class TaskProgressPanelThread extends Thread {
+import java.util.EventObject;
 
-    private TaskProgressPanel panel; 
+public class ThreadPoolEvent extends EventObject {
+	private Thread mThread;
+	private Object payload;
 
-    public TaskProgressPanelThread() {
-        panel = new TaskProgressPanel();
-        setPriority(1);
-    }
+	public ThreadPoolEvent(ThreadPool source, Thread thread) {
+		super(source);
+		mThread = thread;
+	}
 
-    public TaskProgressPanel getPanel() {
-        return panel;
-    }
+	public ThreadPoolEvent(ThreadPool source, Thread thread, Object payload) {
+		super(source);
+		mThread = thread;
+		this.payload = payload;
+	}
 
+
+	public ThreadPool getThreadPool() {
+		return(ThreadPool)getSource();
+	}
+
+	public Thread getThread() {
+		return mThread;
+	}
+
+	public Object getPayload() {
+		return payload;
+	}
 }

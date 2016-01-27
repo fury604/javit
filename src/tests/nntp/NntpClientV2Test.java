@@ -207,15 +207,16 @@ public class NntpClientV2Test extends BaseTest {
     
     
     @Test
-    @Ignore
+    //@Ignore
     public void testGetGroups() {
         client = new NntpClientV2(nServer, dbManager);
         try {
             client.connect();
-            String groups = client.getGroupList( nServer );
+            ArrayList<NntpGroup> groups = client.getGroupList( nServer );
             Assert.assertNotNull( "groupList was null",groups );
             Assert.assertFalse(groups.isEmpty());
-            log.info("groups list had " + groups.length() + " entries");
+            log.info("groups list had " + groups.size() + " entries");
+            
         }
         catch (Exception e) {
             Assert.assertTrue(false);

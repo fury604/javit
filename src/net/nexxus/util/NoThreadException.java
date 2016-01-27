@@ -15,20 +15,30 @@
  * along with Javit.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Copyright 2005-2016 Richard Stride <fury@nexxus.net>
+ *
+ * Original Copyright 1997-2011 teatrove.org
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * @author Brian S O'Neill
  */
-package net.nexxus.gui.task;
+package net.nexxus.util;
 
-public class TaskProgressPanelThread extends Thread {
+/**
+ * This exception is thrown by a {@link ThreadPool} when no thread is
+ * available.
+ */
+public class NoThreadException extends InterruptedException {
+  private boolean mIsClosed;
 
-    private TaskProgressPanel panel; 
+  public NoThreadException(String message) {
+    super(message);
+  }
 
-    public TaskProgressPanelThread() {
-        panel = new TaskProgressPanel();
-        setPriority(1);
-    }
+  public NoThreadException(String message, boolean isClosed) {
+    super(message);
+    mIsClosed = isClosed;
+  }
 
-    public TaskProgressPanel getPanel() {
-        return panel;
-    }
-
+  public boolean isThreadPoolClosed() {
+    return mIsClosed;
+  }
 }

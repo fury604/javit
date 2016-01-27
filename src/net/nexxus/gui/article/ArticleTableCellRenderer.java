@@ -64,7 +64,7 @@ public class ArticleTableCellRenderer extends DefaultTableCellRenderer {
 			c.setForeground(Color.BLACK);
 
 			if ( header.getStatus().equals( NntpArticleHeader.STATUS_READ ) ) {
-				c.setForeground(Color.GRAY);
+				c.setForeground(Color.LIGHT_GRAY);
 			}
 			
 			if ( header.getStatus().equals( NntpArticleHeader.STATUS_QUEUED ) ) {

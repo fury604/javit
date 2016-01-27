@@ -37,8 +37,9 @@ import org.apache.logging.log4j.Logger;
 
 public class GroupsListPanel extends JTable {
 
+    public static GroupsListTableModel groupsModel = new GroupsListTableModel();
+
 	private static Logger log = LogManager.getLogger(GroupsListPanel.class.getName());
-	private static GroupsListTableModel groupsModel = new GroupsListTableModel();
 	private static EventListenerList listenerList = new EventListenerList();
 	private static int DEFAULT_WIDTH_NAME = 400;
 	private static int DEFAULT_WIDTH_COUNT = 40;

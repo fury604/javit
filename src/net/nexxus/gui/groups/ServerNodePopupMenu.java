@@ -24,20 +24,31 @@ import java.awt.event.MouseEvent;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import net.nexxus.db.DBManager;
+import net.nexxus.nntp.NntpClient;
+import net.nexxus.nntp.NntpClientV2;
+import net.nexxus.task.TaskManager;
+import net.nexxus.task.UpdateGroupsTask;
 import net.nexxus.util.ApplicationConstants;
 
 public class ServerNodePopupMenu extends JPopupMenu {
 
     private final JTree groupTree;
     private final DefaultTreeModel treeModel;
-    
-    public ServerNodePopupMenu(String label, final JTree groupTree, final DefaultTreeModel treeModel) {
+    private final DBManager dbManager;
+    private static Logger log = LogManager.getLogger(ServerNodePopupMenu.class.getName());
+            
+    public ServerNodePopupMenu(String label, final JTree groupTree, 
+            final DefaultTreeModel treeModel, final DBManager dbManager) {
         super(label); //"server name"
         this.groupTree = groupTree;
         this.treeModel = treeModel;
+        this.dbManager = dbManager;
         
         this.add(getUpdateGroupsMenuItem());
         this.add(getRemoveServerMenuItem());
@@ -49,7 +60,9 @@ public class ServerNodePopupMenu extends JPopupMenu {
         menuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
                 ServerNode serverNode = (ServerNode)groupTree.getLastSelectedPathComponent();
-                //TaskManager.getInstance().add(new UpdateGroupsTask(server.getServer()));
+                NntpClient client = new NntpClientV2(serverNode.getServer(), dbManager);
+                UpdateGroupsTask updateTask = new UpdateGroupsTask(dbManager, client, serverNode.getServer());
+                TaskManager.getInstance().add(updateTask);
             }
         });
         
@@ -61,8 +74,19 @@ public class ServerNodePopupMenu extends JPopupMenu {
         menuItem.setFont(ApplicationConstants.LUCIDA_FONT);
         menuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
-                DefaultMutableTreeNode node = (DefaultMutableTreeNode) groupTree.getLastSelectedPathComponent();
-                treeModel.removeNodeFromParent(node);
+                try {
+                    ServerNode node = (ServerNode)groupTree.getLastSelectedPathComponent();
+                    treeModel.removeNodeFromParent(node);
+                    try {
+                        dbManager.removeServer(node.getServer());
+                    }
+                    catch (Exception ex) {
+                        log.error("failed removing Server from DB: " + ex.getMessage());
+                    }
+                }
+                catch (NullPointerException npe) {
+                    log.error("no node for lastSelected: " + npe.getMessage());
+                }
             }
         });
         

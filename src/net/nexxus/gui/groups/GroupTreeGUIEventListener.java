@@ -19,9 +19,14 @@
 package net.nexxus.gui.groups;
 
 import java.awt.Cursor;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.nexxus.event.AddServerDialogEvent;
 import net.nexxus.event.GUIEvent;
@@ -31,14 +36,21 @@ import net.nexxus.event.ServerSelectedEvent;
 //import net.nexxus.event.UpdateGroupsEvent;
 import net.nexxus.event.GroupSelectedEvent;
 import net.nexxus.gui.PanelFactory;
+import net.nexxus.gui.article.ArticleTable;
+import net.nexxus.gui.article.ArticleTableModel;
+import net.nexxus.nntp.NntpArticleHeader;
 import net.nexxus.nntp.NntpGroup;
+import net.nexxus.util.ApplicationConstants;
+import net.nexxus.util.ComponentManager;
 
 public class GroupTreeGUIEventListener implements GUIEventListener {
 
     private JPanel panel;
     private PanelFactory panelFactory;
     private JFrame frame;
-    
+    private ComponentManager componentManager = new ComponentManager();
+    private static Logger log = LogManager.getLogger(GroupTreeGUIEventListener.class.getName());
+            
     public GroupTreeGUIEventListener(JPanel panel, PanelFactory panelFactory, JFrame frame) {
         this.panel = panel;
         this.panelFactory = panelFactory;
@@ -49,38 +61,41 @@ public class GroupTreeGUIEventListener implements GUIEventListener {
         // this event we need to load up the ArticleTableModel
         if (event instanceof GroupSelectedEvent) {
             panel.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-            GroupNode g = (GroupNode)event.getSource();
-            System.gc();  // being bad
+            GroupNode groupNode = (GroupNode)event.getSource();
+            //System.gc();  // being bad
 
-            final NntpGroup grp = g.getNntpGroup();
-            final PanelFactory pf = panelFactory;
+            final NntpGroup nntpGroup = groupNode.getNntpGroup();
             final JPanel pref = panel;
+            
             // start this task in separate thread
-            /*
             Thread p = new Thread(
                     new Runnable() {
                         public void run() {
-                            log.debug("calling getCachedHeaders");
-                            int cutoff = ComponentManager.CUTOFF_VAL;
-                            ((ArticleTableModel)
-                                    (pf.getArticleTable().getModel())).fill(ComponentManager.getCacheManager().getCachedHeaders(grp, cutoff));
+                            log.debug("retrieving headers from DB");
+                            log.debug("CUTOFF is " + ApplicationConstants.CUTOFF);
+                            Integer cutoff = new Integer(ApplicationConstants.CUTOFF);
+                            List<NntpArticleHeader> headers = 
+                                    componentManager.getDBManager().getHeaders(nntpGroup, cutoff);
+                            ArticleTable.model.fill(headers);
                             log.debug("finished reading cached headers");
                             pref.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
                         }
                     });
             p.setName("cachedHeaderThread");
             p.start();
-            */
         }
 
         // load GroupTable model with server groups
         if (event instanceof ServerSelectedEvent) {
             panel.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
             ServerNode serverNode = (ServerNode)event.getSource();
-            /*
-            ArrayList groups = (ArrayList)ComponentManager.getCacheManager().getGroupList(snode.getServer());
-            ((GroupsListTableModel)poof.getGroupListPanel().getTableModel()).fill(groups);
-            */
+            try {
+                List<NntpGroup> groups = componentManager.getDBManager().getServerGroups();
+                GroupsListPanel.groupsModel.fill(groups);
+            }
+            catch (Exception e) {
+                log.error("failed retrieving and filling groupsModel with groups: " + e.getMessage());
+            }
             panel.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
         

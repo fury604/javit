@@ -40,10 +40,11 @@ import java.io.FileNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-//import net.nexxus.gui.Main;
 import net.nexxus.nntp.NntpArticleHeader;
 import net.nexxus.nntp.NntpArticlePartID;
 import net.nexxus.task.Task;
+import net.nexxus.task.TaskManager;
+import net.nexxus.util.ApplicationConstants;
 //import net.nexxus.task.TaskManager;
 //import net.nexxus.util.ComponentManager;
 
@@ -54,8 +55,8 @@ public class DecodeManager implements Runnable {
 	private List decodeQueue = Collections.synchronizedList(new ArrayList());
 	private static Task currentTask;
 	private static int SLEEP_TIME = 2000;
-	private String cacheDir = "/tmp";
-	private String downloadDir = "/";
+	private String cacheDir = ApplicationConstants.CACHE_DIR;
+	private String downloadDir = ApplicationConstants.DOWNLOAD_DIR;
 
 	// default c'tor, ensure singleton
 	private DecodeManager() {}
@@ -87,7 +88,6 @@ public class DecodeManager implements Runnable {
 	 */
 	public void decodeSinglepart(NntpArticleHeader header) {
 		header.setStatus(NntpArticleHeader.STATUS_DECODING);
-		//ComponentManager.getCacheManager().updateHeader(header);
 		YDecoder yDec = new YDecoder();
 		File cachefile = new File(cacheDir + 
 				File.separator + header.getServer() + "." +
@@ -103,6 +103,7 @@ public class DecodeManager implements Runnable {
 			FileOutputStream fos = new FileOutputStream(output);
 			yDec.setInputStream(fis);
 			yDec.setOutputStream(fos);
+			
 			// now call decode
 			try {
 				yDec.decode(); 
@@ -125,14 +126,13 @@ public class DecodeManager implements Runnable {
 		} 
 		catch (IOException ioe) {
 			log.warn("IO Exception: " + ioe.getMessage());
+			ioe.printStackTrace();
 			return;
 		}    
 
 		cleanupCache(header);
 
-		header.setStatus(NntpArticleHeader.STATUS_READ);
-		//CacheManager.getInstance().updateHeader(header);
-		//ComponentManager.getCacheManager().updateHeader(header);
+		//header.setStatus(NntpArticleHeader.STATUS_READ);
 		// should generate HeaderChangeEvent here
 		log.debug("total memory after decoding " + Runtime.getRuntime().totalMemory());
 	}
@@ -142,9 +142,6 @@ public class DecodeManager implements Runnable {
 	 */
 	public void decodeMultipart(NntpArticleHeader header) {
 		header.setStatus(NntpArticleHeader.STATUS_DECODING);
-		//ComponentManager.getCacheManager().updateHeader(header);
-
-		// create ydecoder with a BIG line length
 		YDecoder yDec = new YDecoder();
 		try { 									
 			// order our parts
@@ -214,7 +211,6 @@ public class DecodeManager implements Runnable {
 			fos.flush(); 
 			fos.close();
 			header.setStatus(NntpArticleHeader.STATUS_READ);
-			//ComponentManager.getCacheManager().updateHeader(header);
 		} 
 		catch (NotYencException nye) {				
 			//log.debug("not a yEnc encoding, possibly uuencoded " + nye.toString());
@@ -223,7 +219,6 @@ public class DecodeManager implements Runnable {
 			log.debug("decoded file in : " + ((System.currentTimeMillis() - timer)/1000) );
 			cleanupCache(header);
 			header.setStatus(NntpArticleHeader.STATUS_READ);
-			//ComponentManager.getCacheManager().updateHeader(header);
 			return;
 		}
 		catch (IOException ioe) {
@@ -252,7 +247,7 @@ public class DecodeManager implements Runnable {
 				NntpArticleHeader header = currentTask.getHeader();
 				//log.debug("got header from queue");
 				currentTask.setStatus(Task.DECODING);
-				//TaskManager.getInstance().updateTask(currentTask);
+				TaskManager.getInstance().updateTask(currentTask);
 
 				if ( header.isMultipart() ) {
 					log.debug("decoding multipart");
@@ -262,7 +257,7 @@ public class DecodeManager implements Runnable {
 					log.debug("decoding singlepart");
 					decodeSinglepart(header);
 				}
-				//TaskManager.getInstance().removeTask(currentTask);
+				TaskManager.getInstance().removeTask(currentTask);
 			}
 			else {
 				try {

@@ -23,6 +23,8 @@ import javax.swing.event.TableModelEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
+
 import net.nexxus.nntp.NntpGroup;
 
 public class GroupsListTableModel extends AbstractTableModel {
@@ -96,12 +98,9 @@ public class GroupsListTableModel extends AbstractTableModel {
      *
      * fill our Model with data
      */
-    public void fill(ArrayList fill) {
+    public void fill(List fill) {
     	clearModel();
-    	for (int i=0; i <= (fill.size()-1); i++) {
-    		NntpGroup group = (NntpGroup)fill.get(i);
-    		data.add(group);
-    	}
+    	data.addAll(fill);
     	Collections.sort(data);
     	fireTableChanged(new TableModelEvent(this));
     }

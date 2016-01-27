@@ -19,12 +19,9 @@
 package net.nexxus.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Cursor;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Properties;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -35,41 +32,22 @@ import org.apache.logging.log4j.Logger;
 
 
 import net.nexxus.event.AutoUpdatesEvent;
-//import net.nexxus.cache.CacheManager;
-//import net.nexxus.event.AutoUpdatesEvent;
 import net.nexxus.event.GUIEvent;
 import net.nexxus.event.GUIEventListener;
 import net.nexxus.event.SystemExitEvent;
-//import net.nexxus.event.GroupsUpdatedEvent;
-import net.nexxus.event.HeadersUpdatedEvent;
+import net.nexxus.gui.article.ArticleTableGUIEventListener;
 import net.nexxus.gui.groups.GroupTreeGUIEventListener;
-//import net.nexxus.event.SystemExitEvent;
-//import net.nexxus.event.UpdateHeadersEvent;
-//import net.nexxus.event.UpdateGroupsEvent;
-//import net.nexxus.event.GroupSelectedEvent;
-//import net.nexxus.event.ServerSelectedEvent;
 import net.nexxus.event.AddServerDialogEvent;
-//import net.nexxus.event.DownloadArticleEvent;
-//import net.nexxus.gui.article.ArticleTableModel;
-//import net.nexxus.gui.groups.GroupsListTableModel;
-//import net.nexxus.gui.tree.ServerNode;
-//import net.nexxus.gui.tree.GroupNode;
-import net.nexxus.nntp.NntpArticleHeader;
-import net.nexxus.nntp.NntpGroup;
-import net.nexxus.nntp.NntpServer;
-//import net.nexxus.task.DownloadArticleTask;
-//import net.nexxus.task.TaskManager;
-import net.nexxus.task.UpdateHeadersTask;
-//import net.nexxus.util.ComponentManager;
+import net.nexxus.task.TaskManager;
+import net.nexxus.task.TaskManagerGUIEventListener;
 import net.nexxus.util.ApplicationConstants;
+import net.nexxus.util.ComponentManager;
 
 public class Main {
 
 	private static Logger log = LogManager.getLogger(Main.class.getName());
-	//private static Properties properties = ComponentManager.getProperties();
 	private static JPanel panel;
 	private static JFrame frame;
-	//private static TaskManager taskManager;
 	private static PanelFactory panelFactory = new PanelFactory();
 	private static MenuBar menuBar;	
 
@@ -90,22 +68,19 @@ public class Main {
 	 * create the Swing components we need
 	 */
 	private static void createComponents() {
-
 		// ensure folders are present
 		try { 
 			checkPaths(); 
 		} 
 		catch (Exception e) {
 			System.err.println("failed creating needed directories!");
-			//System.err.println(properties.getProperty("header_dir"));
 			System.exit(1);
 		}
 
 		//set up TaskManager Thread
-		//TaskManager taskManager = TaskManager.getInstance();
+		TaskManager taskManager = TaskManager.getInstance();
 		ThreadGroup taskGroup = new ThreadGroup("taskmanager");
 		taskGroup.setMaxPriority(5);
-		/**
 		Thread tasksThread = new Thread(taskGroup, taskManager, taskGroup.getName());
 		try {
 			tasksThread.setPriority(2);
@@ -114,7 +89,6 @@ public class Main {
 		catch (IllegalThreadStateException ite) {
 			System.out.println("could not start taskmanager thread " + ite.toString());
 		}
-		*/
 
 		// create a window
 		frame = new JFrame("Javit News Client");
@@ -139,49 +113,13 @@ public class Main {
 		 * we watch for 
 		 * Download events, add them to the TaskManager queue
 		 * ArrayList events, groups of headers, add them to the TaskManager queue
+		 * 
+		 * this should be relocated into its own ArticleTableGUIEventListener class
 		 */
-		/*
-		poof.getArticleTable().addGUIEventListener(new GUIEventListener() {
-			public void eventOccurred(GUIEvent event) {
-				if (event instanceof DownloadArticleEvent) {
-					Object source = event.getSource();
-					// single article
-					if ( source instanceof NntpArticleHeader ) {
-						Object selected = poof.getGroupTree().getLastSelectedPathComponent();
-						NntpArticleHeader article = (NntpArticleHeader)source;
-						if ( selected instanceof GroupNode ) {
-							GroupNode node = (GroupNode)selected;
-							ServerNode parent = (ServerNode)node.getParent();
-							DownloadArticleTask task = 
-								new DownloadArticleTask((NntpArticleHeader)article, parent.getServer());
-							//
-							if (properties.getProperty("cache_dir") != null) {
-								log.debug("setting cache_dir to: " + properties.getProperty("cache_dir"));
-								task.setCacheDir(properties.getProperty("cache_dir"));
-							}
-							TaskManager.getInstance().add(task);
-						}
-					}
-					// Collection of articles
-					if ( source instanceof ArrayList ) {
-						ArrayList selection = (ArrayList)source;
-						Object selected = poof.getGroupTree().getLastSelectedPathComponent();
-						for ( int x = 0; x < selection.size(); x++ ) {
-							NntpArticleHeader article = (NntpArticleHeader)selection.get(x);
-							if ( selected instanceof GroupNode ) {
-								GroupNode node = (GroupNode)selected;
-								ServerNode parent = (ServerNode)node.getParent();
-								DownloadArticleTask task = 
-									new DownloadArticleTask((NntpArticleHeader)article, parent.getServer());
-								TaskManager.getInstance().add(task);
-							}
-						}
-					}
-				}
-			}
-		});
-        */
-
+		ArticleTableGUIEventListener articleTableListener = 
+		        new ArticleTableGUIEventListener(panelFactory.getGroupTree());
+		panelFactory.getArticleTable().addGUIEventListener(articleTableListener);
+		
 		/**
 		 * registering event listeners with the TaskManager
 		 * supplies behaviour for 
@@ -189,56 +127,10 @@ public class Main {
 		 * reloading the server groupsList on update
 		 * reloading headers in the ArticleTable after update
 		 */   
-		
-		/*
-		taskManager.addGUIEventListener(new GUIEventListener() {
-
-			// add Event Listeners
-			public void eventOccurred(GUIEvent e) {
-
-				// GroupsUpdatedEvent, reload the group
-				if (e instanceof GroupsUpdatedEvent) {
-					NntpServer s = (NntpServer)e.getSource();
-					Object selected = poof.getGroupTree().getLastSelectedPathComponent();
-					if (selected instanceof ServerNode) {
-						ServerNode snode = (ServerNode)selected;
-						if (snode.getName().equals(s.getServer())) {
-							((GroupsListTableModel)
-									(poof.getGroupListPanel().getModel())).fill(ComponentManager.getCacheManager().getGroupList(s));
-						}
-					}
-				}
-
-				// HeadersUpdatedEvent
-				if (e instanceof HeadersUpdatedEvent) {
-					poof.getGroupTree().storeModel();
-					UpdateHeadersTask t= (UpdateHeadersTask)e.getSource();
-					NntpGroup g = (NntpGroup)t.getSource();
-					poof.getGroupTree().updateGroup(g);
-					Object selected = poof.getGroupTree().getLastSelectedPathComponent();
-					if (selected instanceof GroupNode) {
-						GroupNode gnode = (GroupNode)selected;
-						if (gnode.getGroup().equals(g.getName()) &&
-								gnode.getServer().equals(g.getServer()) ) 
-						{
-							log.debug("calling get cached headers with: " + ComponentManager.CUTOFF_VAL);
-							ArrayList tmp = 
-								ComponentManager.getCacheManager().getCachedHeaders(
-										gnode.getNntpGroup(), ComponentManager.CUTOFF_VAL);
-
-							((ArticleTableModel)(poof.getArticleTable().getModel())).fill(tmp);
-							//CacheManager.getInstance().getCachedHeaders(gnode.getNntpGroup()));
-							//ComponentManager.getCacheManager().expireHeaders(gnode.getNntpGroup());
-						}
-					}
-				}
-
-
-			}
-		});
-        */
-
-
+        ComponentManager componentManager = new ComponentManager();
+		TaskManagerGUIEventListener taskManagerListener = 
+		        new TaskManagerGUIEventListener(panelFactory.getGroupTree(), componentManager.getDBManager());
+		taskManager.addGUIEventListener(taskManagerListener);
 
 		// make frame visible
 		frame.setContentPane(panel);
@@ -246,8 +138,6 @@ public class Main {
 		// add a shutdown hook
 		frame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) { 
-				//poof.getGroupTree().storeModel();
-				//ComponentManager.getCacheManager().closeAll();
 				System.exit(0); 
 			}
 		});
@@ -257,8 +147,6 @@ public class Main {
 			public void eventOccurred(final GUIEvent event) {
 				// System Exit
 				if (event instanceof SystemExitEvent) {
-					//poof.getGroupTree().storeModel();
-					//ComponentManager.getCacheManager().closeAll();
 					clearCache();
 					System.exit(0);
 				}
@@ -278,7 +166,6 @@ public class Main {
 		frame.setVisible(true);
 		
 	}
-
 
 	/**
 	 * checkPaths()

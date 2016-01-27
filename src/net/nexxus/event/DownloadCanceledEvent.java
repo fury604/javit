@@ -16,19 +16,12 @@
  *
  * Copyright 2005-2016 Richard Stride <fury@nexxus.net>
  */
-package net.nexxus.gui.task;
+package net.nexxus.event;
 
-public class TaskProgressPanelThread extends Thread {
+public class DownloadCanceledEvent extends GUIEvent {
 
-    private TaskProgressPanel panel; 
-
-    public TaskProgressPanelThread() {
-        panel = new TaskProgressPanel();
-        setPriority(1);
-    }
-
-    public TaskProgressPanel getPanel() {
-        return panel;
+    public DownloadCanceledEvent(Object source) {
+    	super(source);
     }
 
 }

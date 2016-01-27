@@ -26,11 +26,16 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.regex.*;
 
 import net.nexxus.nntp.*;
 import net.nexxus.task.*;
+import net.nexxus.util.ComponentManager;
+import net.nexxus.db.DBManager;
 import net.nexxus.event.*;
+import net.nexxus.gui.PanelFactory;
+import net.nexxus.gui.groups.GroupNode;
 
 public class ArticleTableModel extends AbstractTableModel {
     
@@ -63,27 +68,38 @@ public class ArticleTableModel extends AbstractTableModel {
     // default c'tor
     public ArticleTableModel() {
         super();
+        
         // add event listeners for headers update/download
-        /*
         TaskManager.getInstance().addGUIEventListener(new GUIEventListener() {
             public void eventOccurred(GUIEvent e) {
-                if ( e instanceof ArticleDownloadedEvent ) { // article downloaded
+                if ( e instanceof ArticleDownloadedEvent ) {
+                    log.debug("in eventOccured - ArticleDownloadEvent");
                     DownloadArticleTask t = (DownloadArticleTask)e.getSource();
                     NntpArticleHeader header = (NntpArticleHeader)t.getSource();
+                    header.setStatus(NntpArticleHeader.STATUS_READ);
+                    
+                    // can we update our model?
                     if ( data.size() > 0 ) {
-                        NntpArticleHeader h = (NntpArticleHeader)data.get(0);
-                        // server and group match
-                        if (header.getServer().equals(h.getServer()) && header.getGroup().equals(h.getGroup())) {
-                            if ( data.contains(header) ) {
-                                int x = data.indexOf(header);
-                                ((NntpArticleHeader)data.get(x)).setStatus(NntpArticleHeader.STATUS_READ);
+                        Object node = PanelFactory.groupTreePanel.getLastSelectedPathComponent();
+                        if (node instanceof GroupNode) {
+                            String group = ((GroupNode)node).getGroup();
+                            // do we have the same group?
+                            if (header.getGroup().equals(group)) {
+                                if ( data.contains(header) ) {
+                                    int x = data.indexOf(header);
+                                    ((NntpArticleHeader)data.get(x)).setStatus(header.getStatus());
+                                }
                             }
                         }
                     }
+
+                    // update DB with header status
+                    ComponentManager componentManager = new ComponentManager();
+                    DBManager dbManager = componentManager.getDBManager();
+                    dbManager.updateHeader(header);
                 }
             }
         });
-        */
     }
     
     // return num columns
@@ -135,7 +151,7 @@ public class ArticleTableModel extends AbstractTableModel {
      *
      * fill our Model with data
      */
-    public void fill(ArrayList fill) {
+    public void fill(List<NntpArticleHeader> fill) {
         data.clear();
         data.addAll(fill);
         filter();

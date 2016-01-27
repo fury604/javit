@@ -85,7 +85,7 @@ public interface NntpClient {
 
     public boolean isConnected();
 
-    public String getGroupList(NntpServer nServer) throws NntpException;
+    public ArrayList<NntpGroup> getGroupList(NntpServer nServer) throws NntpException;
 
     public NntpGroup setGroup(NntpGroup grp) throws NntpException;
 

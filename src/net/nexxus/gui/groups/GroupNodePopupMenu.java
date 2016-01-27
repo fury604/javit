@@ -20,26 +20,40 @@ package net.nexxus.gui.groups;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import net.nexxus.db.DBManager;
+import net.nexxus.gui.article.ArticleTable;
+import net.nexxus.nntp.NntpArticleHeader;
+import net.nexxus.nntp.NntpClient;
+import net.nexxus.nntp.NntpClientV2;
+import net.nexxus.task.TaskManager;
 import net.nexxus.task.UpdateHeadersTask;
 import net.nexxus.util.ApplicationConstants;
+import net.nexxus.util.ComponentManager;
 
 
 public class GroupNodePopupMenu extends JPopupMenu {
 
     private final JTree groupTree;
     private final DefaultTreeModel treeModel;
+    private final ComponentManager componentManager = new ComponentManager();
+    private final DBManager dbManager;
+    private static Logger log = LogManager.getLogger(GroupNodePopupMenu.class);
     
     public GroupNodePopupMenu(String label, final JTree groupTree, final DefaultTreeModel treeModel) {
         super(label); // "groups for server"
         this.groupTree = groupTree;
         this.treeModel = treeModel;
+        this.dbManager = componentManager.getDBManager();
         
         this.add(getIncrementalUpdateMenuItem());
         this.add(getAutoUpdateMenuItem());
@@ -56,9 +70,13 @@ public class GroupNodePopupMenu extends JPopupMenu {
         menuItem.setFont(ApplicationConstants.LUCIDA_FONT);
         menuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
-                GroupNode groupNode = (GroupNode) groupTree.getLastSelectedPathComponent();
+                GroupNode groupNode = (GroupNode)groupTree.getLastSelectedPathComponent();
                 ServerNode serverNode = (ServerNode)groupNode.getParent();
-                //TaskManager.getInstance().add(new UpdateHeadersTask(node.getNntpGroup(),snode.getServer()));
+                NntpClient client = new NntpClientV2(serverNode.getServer(), dbManager);
+                TaskManager.getInstance().add(
+                        new UpdateHeadersTask(
+                                dbManager, client, groupNode.getNntpGroup(), serverNode.getServer())
+                );
             }
         });
         
@@ -97,7 +115,11 @@ public class GroupNodePopupMenu extends JPopupMenu {
                 GroupNode groupNode = (GroupNode) groupTree.getLastSelectedPathComponent();
                 groupNode.getNntpGroup().setHighID(0);
                 ServerNode serverNode = (ServerNode)groupNode.getParent();
-                //TaskManager.getInstance().add(new UpdateHeadersTask(node.getNntpGroup(),snode.getServer()));
+                NntpClient client = new NntpClientV2(serverNode.getServer(), dbManager);
+                TaskManager.getInstance().add(
+                        new UpdateHeadersTask(
+                                dbManager, client, groupNode.getNntpGroup(), serverNode.getServer())
+                );
             }
         });
         
@@ -113,9 +135,9 @@ public class GroupNodePopupMenu extends JPopupMenu {
         menuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
                 GroupNode groupNode = (GroupNode) groupTree.getLastSelectedPathComponent();
-                //ArticleTable.model.fill(
-                //        ComponentManager.getCacheManager().getCachedHeaders( ((GroupNode)node).getNntpGroup(), ComponentManager.CUTOFF_VAL )
-                //);
+                List<NntpArticleHeader> headers = 
+                        dbManager.getHeaders(groupNode.getNntpGroup(), ApplicationConstants.CUTOFF);
+                ArticleTable.model.fill(headers);
             }
         });
         
@@ -130,9 +152,14 @@ public class GroupNodePopupMenu extends JPopupMenu {
         menuItem.setFont(ApplicationConstants.LUCIDA_FONT);
         menuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
-                DefaultMutableTreeNode node = (DefaultMutableTreeNode) groupTree.getLastSelectedPathComponent();
+                GroupNode node = (GroupNode) groupTree.getLastSelectedPathComponent();
                 treeModel.removeNodeFromParent(node);
-                //ComponentManager.getCacheManager().removeGroup( ((GroupNode)node).getNntpGroup() );
+                try {
+                    dbManager.removeGroup(node.getNntpGroup());
+                }
+                catch (Exception ex) {
+                    log.error("failed removing subscribed group from DB: " + ex.getMessage());
+                }
             }
         });
         

@@ -11,5 +11,5 @@
 
 
 
-java -Xmx2048m -cp "lib/*"  net.nexxus.gui.Main
+java -Xmx2048m -cp ".:lib/*"  net.nexxus.gui.Main
 

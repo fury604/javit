@@ -34,5 +34,7 @@ public class ApplicationConstants {
     public static String DOWNLOAD_DIR = "downloads";
     public static String CACHE_DIR = "cache";
     public static String HEADERS_DIR = "headers";
+    
+    public static String APP_CONFIG_FILE = "javit.conf";
 
 }

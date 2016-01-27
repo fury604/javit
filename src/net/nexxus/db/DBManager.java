@@ -31,6 +31,8 @@ import net.nexxus.nntp.NntpServer;
 
 public interface DBManager extends EventListenerInterface {
     
+    // ArticleHeader methods ////
+    
     public List<NntpArticleHeader> getHeaders(NntpGroup group, Integer cutoff);
     
     public NntpArticleHeader getHeader(NntpGroup group, NntpArticleHeader header) throws Exception;
@@ -41,15 +43,27 @@ public interface DBManager extends EventListenerInterface {
     
     public void removeHeader(NntpArticleHeader header);
     
-    public NntpGroup getGroupMinMax(NntpGroup group) throws Exception;
-    
+    // NntpGroup methods ////
+
     public void createServerGroups() throws Exception;
+    
+    public NntpGroup getGroupMinMax(NntpGroup group) throws Exception;
     
     public List<NntpGroup> getGroups() throws Exception;
     
     public void addGroup(NntpGroup group) throws Exception;
     
     public void removeGroup(NntpGroup group) throws Exception;
+    
+    public void createServerGroupList() throws Exception;
+    
+    public void addServerGroup(NntpGroup group) throws Exception;
+    
+    public void addServerGroups(List<NntpGroup> groups) throws Exception;
+    
+    public List<NntpGroup> getServerGroups() throws Exception;
+
+    // NntpServer methods ////
     
     public void createServerTable() throws Exception;
     

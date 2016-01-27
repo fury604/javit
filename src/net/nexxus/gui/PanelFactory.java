@@ -26,6 +26,7 @@ import javax.swing.event.EventListenerList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import net.nexxus.db.DBManager;
 import net.nexxus.event.AddServerEvent;
 //import net.nexxus.event.AddServerEvent;
 import net.nexxus.event.GUIEvent;
@@ -51,6 +52,7 @@ import net.nexxus.gui.task.TaskPanel;
 //import net.nexxus.gui.task.TaskPanel;
 import net.nexxus.nntp.NntpGroup;
 import net.nexxus.util.ApplicationConstants;
+import net.nexxus.util.ComponentManager;
 
 /**
  * The PanelFactory gives us an easy way to fetch the
@@ -60,8 +62,8 @@ import net.nexxus.util.ApplicationConstants;
 
 public class PanelFactory {
 
-	// private members 
-	private static GroupTreePanel groupTreePanel = new GroupTreePanel();
+	public static GroupTreePanel groupTreePanel = new GroupTreePanel();
+	
 	private static TaskPanel taskPanel;
 	private static GroupsListPanel groupListPanel;
 	private static JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -69,7 +71,7 @@ public class PanelFactory {
 	private static AddServerDialog addServerDialog;
 	//private static ProgressBar progressBar = new ProgressBar();
 	private static ArticlePanel articlePanel = new ArticlePanel();
-
+	private ComponentManager componentManager = new ComponentManager();
 	private static Logger log = LogManager.getLogger(PanelFactory.class.getName());
 
 	// default c'tor
@@ -105,6 +107,13 @@ public class PanelFactory {
 		return left;
 	}
 
+	/**
+	 * get the right side GUI components,
+	 * TabbedPane with article, task and grouplist 
+	 * tables
+	 * 
+	 * @return
+	 */
 	public JTabbedPane getRightSide() {
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.setFont(ApplicationConstants.LUCIDA_FONT);
@@ -143,12 +152,23 @@ public class PanelFactory {
 	                GroupNode node = new GroupNode(group);
 	                // iterate over server nodes
 	                for (int x=0; x <= (childCount-1); x++) {
-	                    ServerNode server = (ServerNode)
-	                            groupTreePanel.getModel().getChild(root,x);
+	                    ServerNode server = 
+	                            (ServerNode)groupTreePanel.getModel().getChild(root,x);
 	                    // now compare
-	                    if ( server.getName().equals(group.getServer()) ) {
-	                        ((DefaultTreeModel)groupTreePanel.getModel()).insertNodeInto(node, server, 0);
-	                    }
+	                    //if ( server.getName().equals(group.getServer()) ) {
+                        //}
+
+	                    ((DefaultTreeModel)groupTreePanel.getModel()).insertNodeInto(node, server, 0);
+                        // store this subscription in the DB
+                        try {
+                            DBManager dbManager = componentManager.getDBManager();
+                            group.setServer(server.getName()); // correct for ambiguity
+                            dbManager.addGroup(group);
+                        }
+                        catch (Exception e) {
+                            log.error("failed saving group subscription to DB: " + e.getMessage());
+                        }
+                        
 	                }
 	            } // end SubscribeGroupEvent
 	        }
@@ -179,6 +199,14 @@ public class PanelFactory {
 					if (event instanceof AddServerEvent) {
 						RootNode rnode = (RootNode)groupTreePanel.getModel().getRoot();
 						ServerNode snode = (ServerNode)event.getSource();
+						// insert the Server into the DB?
+						DBManager dbManager = componentManager.getDBManager();
+						try {
+						    dbManager.addServer(snode.getServer());
+						}
+						catch (Exception e) {
+						    log.error("failed saving NntpServer to DB: " + e.getMessage());
+						}
 						((DefaultTreeModel)groupTreePanel.getModel()).insertNodeInto(snode,rnode,
 								(groupTreePanel.getModel().getChildCount(rnode)));
 					}

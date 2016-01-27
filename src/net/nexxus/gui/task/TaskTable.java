@@ -28,18 +28,18 @@ import org.apache.logging.log4j.Logger;
 
 import net.nexxus.event.GUIEvent;
 import net.nexxus.event.GUIEventListener;
-//import net.nexxus.event.ArticleDownloadedEvent;
+import net.nexxus.event.ArticleDownloadedEvent;
 import net.nexxus.event.HeadersUpdatedEvent;
 import net.nexxus.event.HeadersUpdateErrorEvent;
-//import net.nexxus.event.GroupsUpdatedEvent;
+import net.nexxus.event.GroupsUpdatedEvent;
 import net.nexxus.event.ArticleDownloadErrorEvent;
-//import net.nexxus.event.GroupsUpdateErrorEvent;
-//import net.nexxus.event.DownloadCanceledEvent;
+import net.nexxus.event.GroupsUpdateErrorEvent;
+import net.nexxus.event.DownloadCanceledEvent;
 import net.nexxus.event.UpdateHeadersEvent;
-//import net.nexxus.event.CancelArticleDownloadEvent;
+import net.nexxus.event.CancelArticleDownloadEvent;
 
 import net.nexxus.task.Task;
-//import net.nexxus.task.TaskManager;
+import net.nexxus.task.TaskManager;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -55,7 +55,6 @@ public class TaskTable extends JTable {
 	// private members
 	private static TaskTableModel taskModel = new TaskTableModel(); 
 	private static EventListenerList listenerList = new EventListenerList();
-	//private static TaskManager tm = TaskManager.getInstance();
 	private static Logger log = LogManager.getLogger(TaskTable.class.getName());
 	private Font defaultFont = new Font("Lucida",Font.PLAIN,11);
 
@@ -65,10 +64,12 @@ public class TaskTable extends JTable {
 		setModel(taskModel);
 		setBackground( Color.WHITE );
 
-		/*
-		tm.addGUIEventListener( new GUIEventListener() {
+		
+		TaskManager.getInstance().addGUIEventListener( new GUIEventListener() {
 			public void eventOccurred(GUIEvent event) {
-				if (event instanceof ArticleDownloadedEvent) {
+		        TaskManager tm = TaskManager.getInstance();
+
+			    if (event instanceof ArticleDownloadedEvent) {
 					taskModel.fill(tm.getTaskList());
 				}
 
@@ -109,7 +110,6 @@ public class TaskTable extends JTable {
 				}
 			}
 		});
-        */
 		
 		// renderer
 		setDefaultRenderer(String.class, new TaskTableCellRenderer());
@@ -172,7 +172,7 @@ public class TaskTable extends JTable {
 		// need an action listener for each  menu item
 		itemClear.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) { 
-				//tm.clearErrors(); 
+				TaskManager.getInstance().clearErrors(); 
 			}
 		});
 
@@ -186,7 +186,7 @@ public class TaskTable extends JTable {
 				int[] rows = getSelectedRows();
 				if ( rows.length == 1 ) {
 					Task t = (Task)taskModel.getRow(getSelectedRow());
-					//TaskManager.getInstance().cancel(t);
+					TaskManager.getInstance().cancel(t);
 				} 
 				else {
 					ArrayList tasks = new ArrayList(); 
@@ -196,7 +196,7 @@ public class TaskTable extends JTable {
 						log.debug("from model: " + t.getTaskID());
 						tasks.add(t);
 					}
-					//TaskManager.getInstance().cancel(tasks);
+					TaskManager.getInstance().cancel(tasks);
 				}
 			}
 		});

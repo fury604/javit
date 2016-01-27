@@ -46,8 +46,8 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
     private static Logger log = LogManager.getLogger(DBManagerImpl.class);
     private String ormConfig = "mybatis-config.xml";
     private SqlSessionFactory sqlFactory;
-    private String groupsTable = "groups_table";
-    private String serverTable = "server_table";
+    private String groupsTable = "groups_subscribed";
+    private String serverTable = "servers";
     
     public DBManagerImpl(Properties p) {
         // get setup here
@@ -59,6 +59,8 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
             log.error("could not load myBatis config: " + e.getMessage());
         }
     }
+    
+    // ArticleHeader methods ////
     
     /**
      * return a List of headers using an optional cutoff which
@@ -73,7 +75,7 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
             map.put("table", table);
             SqlSession session = sqlFactory.openSession();
 
-            if (cutoff == null) {
+            if (cutoff == null || cutoff.equals(Integer.valueOf(0))) {
                 log.debug("not using cutoff selecting headers");
                 resultSet = session.selectList("getHeadersLite", map);
             }
@@ -116,7 +118,6 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
         return header;
     }
     
-    
     public void addHeader(NntpArticleHeader header) throws Exception {
         try {
             SqlSession session = sqlFactory.openSession(true);
@@ -149,21 +150,8 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
         
     }
     
-    /** 
-     * update the given NntpGroup to have its min and max article id's
-     * set
-     */
-    public NntpGroup getGroupMinMax(NntpGroup group) throws Exception {
-        SqlSession session = sqlFactory.openSession();
-        HashMap<Long,Long> map = session.selectOne("getMinMax", DBUtils.convertGroup(group.getName()));
-        Long min = map.get("min");
-        Long max = map.get("max");
-        group.setLowID(min.longValue());
-        group.setHighID(max.longValue());
-        
-        return group;
-    }
-
+    // NntpGroup methods ////
+    
     /**
      * Methods that handle the internal Groups table
      * of subscribed groups
@@ -180,6 +168,27 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
         session.close();
     }
     
+    /** 
+     * update the given NntpGroup to have its min and max article id's
+     * set
+     */
+    public NntpGroup getGroupMinMax(NntpGroup group) throws Exception {
+        SqlSession session = sqlFactory.openSession();
+        HashMap<Long,Long> map = session.selectOne("getMinMax", DBUtils.convertGroup(group.getName()));
+        if (map == null || map.isEmpty()) {
+            group.setLowID(0L);
+            group.setHighID(0L);
+        }
+        else {
+            Long min = map.get("min");
+            Long max = map.get("max");
+            group.setLowID(min.longValue());
+            group.setHighID(max.longValue());
+        }
+        
+        return group;
+    }
+    
     /**
      * add an NntpGroup to our groups list
      */
@@ -191,6 +200,10 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
         
         SqlSession session = sqlFactory.openSession();
         session.insert("addGroup", map);
+        
+        // now ensure there is an ArticleHeader table for it
+        session.insert("createHeaderTable", DBUtils.convertGroup(group.getName()));
+        
         session.commit();
         session.close();
     }
@@ -220,10 +233,65 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
         return resultSet;
     }
 
+     // Methods that handle NntpServer group lists
+    
     /**
-     * methods that handle the internal tables for 
-     * dealing with our NntpServer entities
+     * create Server group list table
+     * @throws Exception
      */
+    public void createServerGroupList() throws Exception {
+        SqlSession session = sqlFactory.openSession();
+        session.insert("createGroupListTable", groupsTable);
+        session.commit();
+        session.close();
+    }
+    
+    /**
+     * add an NntpGroup to an NntpServers group listing
+     * @param group
+     * @throws Exception
+     */
+    public void addServerGroup(NntpGroup group) throws Exception {
+        HashMap map = new HashMap();
+        map.put("name", group.getName());
+        map.put("hi", group.getHighID());
+        map.put("low", group.getLowID());
+        
+        SqlSession session = sqlFactory.openSession();
+        session.insert("addGroupToGroupList", map);
+        session.commit();
+        session.close();
+    }
+    
+    public void addServerGroups(List<NntpGroup> groups) throws Exception {
+        HashMap map = new HashMap();
+        SqlSession session = sqlFactory.openSession();
+        Iterator<NntpGroup> iter = groups.iterator();
+        while (iter.hasNext()) {
+            NntpGroup group = iter.next();
+            map.put("name", group.getName());
+            map.put("hi", group.getHighID());
+            map.put("low", group.getLowID());
+            session.insert("addGroupToGroupList", map);
+        }
+        session.commit();
+        session.close();
+    }
+    
+    /**
+     * return a List of NntpGroups belonging to an NntpServer
+     * @return
+     * @throws Exception
+     */
+    public List<NntpGroup> getServerGroups() throws Exception {
+        SqlSession session = sqlFactory.openSession();
+        List resultSet = session.selectList("getGroupList");
+        session.close();
+        
+        return resultSet;
+    }
+    
+    // NntpServer methods ////
     
     /**
      * create the needed DB table to hold our 
@@ -275,10 +343,8 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
         session.close();
     }
 
-    /**
-     * Utility methods follow
-     */
-    
+    // Utility methods follow ////
+
     private String calculateCutoff(Integer cutoff) {
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, -(cutoff.intValue() * 24));

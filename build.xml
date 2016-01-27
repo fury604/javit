@@ -101,22 +101,11 @@
 			</classpath>
 			<formatter type="plain" />
 			<sysproperty key="src.root" value="${src.root}"/>
-			<!--
-      <test name="tests.nntp.NntpGeneralTest" haltonfailure="no"/>
-      <test name="tests.cache.CacheManagerV3Test" haltonfailure="no"/>
-      <test name="tests.orientdb.OrientDBTest" haltonfailure="no"/>
-      <test name="tests.nntp.NntpClientV2Test" haltonfailure="no"/>
-      <test name="tests.search.SolrTest" haltonfailure="no"/>
-      <test name="tests.search.SolrHandlerTest" haltonfailure="no"/>
-      <test name="tests.tasks.DownloadArticleTaskTest" haltonfailure="no"/>
-      <test name="tests.search.SolrQueryFactoryTest" haltonfailure="no"/>
-      <test name="tests.tasks.UpdateHeadersTaskTest" haltonfailure="no"/>
-      
--->
 			<test name="tests.tasks.UpdateHeadersTaskTest" haltonfailure="no"/>
 			<test name="tests.nntp.NntpClientV2Test" haltonfailure="no"/>
 			<test name="tests.db.DBManagerImplTest" haltonfailure="no"/>
 			<test name="tests.decode.DecodeManagerTest" haltonfailure="no"/>
+		    <test name="tests.tasks.UpdateGroupsTaskTest" haltonfailure="no"/>
 		</junit>
 	</target>
 

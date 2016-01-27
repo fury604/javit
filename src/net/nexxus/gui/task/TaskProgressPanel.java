@@ -36,9 +36,11 @@ import net.nexxus.event.GUIEventListener;
 import net.nexxus.event.GUIEvent;
 import net.nexxus.event.ArticlePartDownloadedEvent;
 import net.nexxus.event.HeaderDownloadedEvent;
+import net.nexxus.event.HeadersUpdateErrorEvent;
 import net.nexxus.event.HeadersUpdatedEvent;
 import net.nexxus.nntp.NntpArticleHeader;
 import net.nexxus.nntp.NntpGroup;
+import net.nexxus.task.DownloadArticleTask;
 import net.nexxus.task.RunnableTask;
 //import net.nexxus.task.DownloadArticleTask;
 import net.nexxus.task.UpdateHeadersTask;
@@ -90,12 +92,11 @@ public class TaskProgressPanel extends JPanel {
      * listen to the given Runnable Task
      */
     public void listenTo( RunnableTask rt ) {
-
         rt.addGUIEventListener(new GUIEventListener() {
+
             public void eventOccurred(GUIEvent e) {
                 if (e instanceof ArticlePartDownloadedEvent) {
                     ArticlePartDownloadedEvent ev = (ArticlePartDownloadedEvent)e;
-          
                     if ( ev.getPartNumber() == ev.getTotalParts() ) {
                         progressBar.setValue( ev.getTotalParts() );
                         label.setText( prefix );
@@ -112,8 +113,14 @@ public class TaskProgressPanel extends JPanel {
                     progressBar.setValue( 0 );
                 }
                 
-                if ( e instanceof HeadersUpdatedEvent ) {
+                if (e instanceof HeadersUpdatedEvent) {
                     label.setText( prefix );
+                    progressBar.setIndeterminate(false);
+                    progressBar.setValue( 0 );
+                }
+                
+                if (e instanceof HeadersUpdateErrorEvent) {
+                    progressBar.setIndeterminate(false);
                     progressBar.setValue( 0 );
                 }
 
@@ -131,16 +138,15 @@ public class TaskProgressPanel extends JPanel {
         });
         
         // now set up our label
-        /*
         if ( rt instanceof DownloadArticleTask ) {
             NntpArticleHeader header = (NntpArticleHeader)rt.getSource();
             label.setText( prefix + " : " + header.getSubject() );
         }
-        */
         
         if ( rt instanceof UpdateHeadersTask ) {
             NntpGroup group = (NntpGroup)rt.getSource();
             label.setText( prefix + " : updating headers for " + group.getName() );
+            this.progressBar.setIndeterminate(true);
         }
     }
 
