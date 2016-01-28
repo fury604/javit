@@ -32,6 +32,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import net.nexxus.event.ArticleDownloadErrorEvent;
+import net.nexxus.event.ArticleDownloadedEvent;
 import net.nexxus.event.GUIEventListener;
 import net.nexxus.event.GUIEvent;
 import net.nexxus.event.ArticlePartDownloadedEvent;
@@ -96,11 +97,12 @@ public class TaskProgressPanel extends JPanel {
 
             public void eventOccurred(GUIEvent e) {
                 if (e instanceof ArticlePartDownloadedEvent) {
+                    log.debug("ArticlePartDownloadedEvent");
                     ArticlePartDownloadedEvent ev = (ArticlePartDownloadedEvent)e;
                     if ( ev.getPartNumber() == ev.getTotalParts() ) {
                         progressBar.setValue( ev.getTotalParts() );
-                        label.setText( prefix );
-                        progressBar.setValue( 0 );
+                        label.setText(prefix);
+                        progressBar.setValue(0);
                     }
                     else {
                         progressBar.setMaximum( ev.getTotalParts() );
@@ -108,27 +110,34 @@ public class TaskProgressPanel extends JPanel {
                     }
                 }
                 
+                if (e instanceof ArticleDownloadedEvent) {
+                    log.debug("ArticleDownloadedEvent");
+                    label.setText(prefix);
+                    progressBar.setValue(0);
+                }
+                
                 if (e instanceof ArticleDownloadErrorEvent) {
-                    label.setText( prefix );
-                    progressBar.setValue( 0 );
+                    label.setText(prefix);
+                    progressBar.setValue(0);
                 }
                 
                 if (e instanceof HeadersUpdatedEvent) {
-                    label.setText( prefix );
+                    label.setText(prefix);
                     progressBar.setIndeterminate(false);
-                    progressBar.setValue( 0 );
+                    progressBar.setValue(0);
                 }
                 
                 if (e instanceof HeadersUpdateErrorEvent) {
                     progressBar.setIndeterminate(false);
-                    progressBar.setValue( 0 );
+                    progressBar.setValue(0);
                 }
 
                 if (e instanceof HeaderDownloadedEvent) {
+                    log.debug("HeaderDownloadedEvent");
                     HeaderDownloadedEvent ev = (HeaderDownloadedEvent)e;
                     if ( ev.getNumber() == ev.getTotal() ) {
-                        label.setText( prefix );
-                        progressBar.setValue( 0 );
+                        label.setText(prefix);
+                        progressBar.setValue(0);
                     }
                     else {
                         progressBar.setValue( ev.getNumber() );

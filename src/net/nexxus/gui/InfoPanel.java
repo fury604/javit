@@ -29,9 +29,6 @@ import net.nexxus.util.ApplicationConstants;
 
 public class InfoPanel extends JPanel {
 
-	//public static CacheProgressBar bar = new CacheProgressBar();
-
-	private String meterLabel = "Header Meter";
 	private String articleMode = "Article Mode:";
 	private JLabel articleModeLabel = new JLabel("3 Day");
 
@@ -39,16 +36,7 @@ public class InfoPanel extends JPanel {
 	 * constructor set up everything at this point
 	 */
 	public InfoPanel() {
-		super(new GridLayout(2,2));
-
-		// assign a JLabel 
-		JLabel headerMeter = new JLabel(meterLabel);
-		headerMeter.setFont(ApplicationConstants.BITSTREAM_CHARTER_FONT);
-		add(headerMeter);
-
-		// now a ProgressBar
-		//CacheProgressBar bar = new CacheProgressBar();
-		//add(bar);
+		super(new GridLayout(1,1));
 
 		JLabel modeLabel = new JLabel(articleMode);
 		modeLabel.setFont(ApplicationConstants.BITSTREAM_CHARTER_FONT);
