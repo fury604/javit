@@ -38,9 +38,6 @@
 		</fileset>
 	</path>
 
-	<property name="test.class.path"  refid="project.class.path"/>
-
-
 	<!--
     ** init dev target The "dev" target depends on this target.
     -->
@@ -94,7 +91,7 @@
 	<target name="test" depends="dev, compile">
 		<junit printsummary="yes" haltonfailure="yes" fork="on" maxmemory="6000m">
 			<classpath>
-				<pathelement path="${test.class.path}" />
+				<pathelement path="${project.class.path}" />
 				<pathelement path="${build.dir}/classes"/>
 				<pathelement path="src/tests"/>
 				<!-- pathelement path="${dist.build.home}"/ -->
