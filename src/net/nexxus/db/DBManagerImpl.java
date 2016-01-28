@@ -193,10 +193,12 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
      * add an NntpGroup to our groups list
      */
     public void addGroup(NntpGroup group) throws Exception {
-        HashMap<String,String> map = new HashMap<String,String>();
+        HashMap<String,Object> map = new HashMap<String,Object>();
         map.put("table", groupsTable);
         map.put("server", group.getServer());
         map.put("name", group.getName());
+        map.put("hi", group.getHighID());
+        map.put("low", group.getLowID());
         
         SqlSession session = sqlFactory.openSession();
         session.insert("addGroup", map);
@@ -207,6 +209,25 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
         session.commit();
         session.close();
     }
+    
+    /**
+     * update an NntpGroup in our groups list
+     */
+    public void updateGroup(NntpGroup group) throws Exception {
+        HashMap<String,Object> map = new HashMap<String,Object>();
+        map.put("table", groupsTable);
+        map.put("name", group.getName());
+        map.put("auto_update", group.isAutoUpdate());
+        map.put("hi", group.getHighID());
+        map.put("low", group.getLowID());
+        
+        SqlSession session = sqlFactory.openSession();
+        session.update("updateGroup", map);
+        
+        session.commit();
+        session.close();
+    }
+    
     
     /**
      * remove an NntpGroup from our groups list

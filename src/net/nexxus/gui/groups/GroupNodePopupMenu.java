@@ -35,6 +35,7 @@ import net.nexxus.gui.article.ArticleTable;
 import net.nexxus.nntp.NntpArticleHeader;
 import net.nexxus.nntp.NntpClient;
 import net.nexxus.nntp.NntpClientV2;
+import net.nexxus.nntp.NntpGroup;
 import net.nexxus.task.TaskManager;
 import net.nexxus.task.UpdateHeadersTask;
 import net.nexxus.util.ApplicationConstants;
@@ -97,6 +98,12 @@ public class GroupNodePopupMenu extends JPopupMenu {
                 }
                 else {
                     groupNode.getNntpGroup().setAutoUpdate(true);
+                }
+                try {
+                    dbManager.updateGroup(groupNode.getNntpGroup());
+                }
+                catch (Exception ex) {
+                    log.error("failed updating NntpGroup: " + ex.getMessage());
                 }
             }
         });

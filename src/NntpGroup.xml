@@ -31,15 +31,26 @@
 	<!-- add a group the the subscription table -->
 	<insert id="addGroup" parameterType="java.util.Map">
 		replace into ${table} 
-		(server, name)
+		(server, name, hi, low)
 		values
-		(#{server}, #{name})
+		(#{server}, #{name}, #{hi}, #{low})
 	</insert>
 	
 	<!-- select groups we are subscribed to -->
 	<select id="getGroups" resultMap="group" parameterType="String">
 		select * from ${_parameter} 
 	</select>
+
+	<!-- update a group -->
+	<update id="updateGroup" parameterType="java.util.Map">
+		update ${table}
+		set
+		auto_update = #{auto_update},
+		hi = #{hi},
+		low = #{low}
+		where
+		name = #{name}
+	</update>
 
 	<!-- remove a group the the subscription table -->
 	<delete id="removeGroup" parameterType="java.util.Map">

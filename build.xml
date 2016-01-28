@@ -50,8 +50,6 @@
 		<property name="javadoc.home"   value="${doc.root}/javadoc"/>
 	</target>
 
-
-
 	<!--
     ** configure and invoke developer's build
     -->
@@ -59,7 +57,6 @@
 		<antcall target="compile">
 		</antcall>
 	</target>
-
 
 	<!--
     ** Clean the directory structure.
@@ -73,7 +70,6 @@
 		<!-- delete dir="${dist.build.home}"/ -->
 	</target>
 
-
 	<target name="prepare">
 		<!-- time stamp -->
 		<tstamp/>
@@ -83,26 +79,28 @@
 		<ivy:retrieve type="jar" />
 	</target>
 
-
-
 	<!--
     ** configure and invoke unit tests
     -->
 	<target name="test" depends="dev, compile">
 		<junit printsummary="yes" haltonfailure="yes" fork="on" maxmemory="6000m">
 			<classpath>
-				<pathelement path="${project.class.path}" />
+				<pathelement path="${java.class.path}"/>
+				<fileset dir="lib">
+					<include name="*.jar"/>
+				</fileset>
 				<pathelement path="${build.dir}/classes"/>
 				<pathelement path="src/tests"/>
-				<!-- pathelement path="${dist.build.home}"/ -->
 			</classpath>
 			<formatter type="plain" />
 			<sysproperty key="src.root" value="${src.root}"/>
+			<!--
 			<test name="tests.tasks.UpdateHeadersTaskTest" haltonfailure="no"/>
 			<test name="tests.nntp.NntpClientV2Test" haltonfailure="no"/>
-			<test name="tests.db.DBManagerImplTest" haltonfailure="no"/>
 			<test name="tests.decode.DecodeManagerTest" haltonfailure="no"/>
 		    <test name="tests.tasks.UpdateGroupsTaskTest" haltonfailure="no"/>
+			-->
+			<test name="tests.db.DBManagerImplTest" haltonfailure="no"/>
 		</junit>
 	</target>
 

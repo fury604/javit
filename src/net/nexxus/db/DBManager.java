@@ -53,6 +53,8 @@ public interface DBManager extends EventListenerInterface {
     
     public void addGroup(NntpGroup group) throws Exception;
     
+    public void updateGroup(NntpGroup group) throws Exception;
+    
     public void removeGroup(NntpGroup group) throws Exception;
     
     public void createServerGroupList() throws Exception;

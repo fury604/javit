@@ -121,6 +121,17 @@ public class DBManagerImplTest extends BaseTest {
     }
     
     @Test
+    public void testUpdateGroup() {
+        try {
+            nGroup.setAutoUpdate(true);
+            dbManager.updateGroup(nGroup);
+        }
+        catch (Exception e) {
+            Assert.fail("failed updating Group: " + e.getMessage());
+        }
+    }
+
+    @Test
     public void testGetGroups() {
         try {
             List<NntpGroup> groups = dbManager.getGroups();
@@ -188,6 +199,7 @@ public class DBManagerImplTest extends BaseTest {
     }
 
     @Test
+    @Ignore
     public void testAddServer() {
         try {
             dbManager.addServer(nServer);
@@ -198,6 +210,7 @@ public class DBManagerImplTest extends BaseTest {
     }
     
     @Test
+    @Ignore
     public void testGetServer() {
         try {
             NntpServer server = dbManager.getServer();
@@ -209,6 +222,7 @@ public class DBManagerImplTest extends BaseTest {
     }
     
     @Test
+    @Ignore
     public void testRemoveServer() {
         try {
             dbManager.removeServer(nServer);
