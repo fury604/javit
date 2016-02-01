@@ -103,6 +103,10 @@ public class UpdateHeadersTask extends EventListenerImpl implements RunnableTask
             client.getHeaders(group);
             client.disconnect();
             
+            // update group stats
+            group = dbManager.getGroupMinMax(group);
+            dbManager.updateGroup(group);
+            
             log.debug("firing HeadersUpdatedEvent");
             HeadersUpdatedEvent ev = new HeadersUpdatedEvent(this);
             fireEvent(ev);

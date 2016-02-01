@@ -48,6 +48,7 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
     private SqlSessionFactory sqlFactory;
     private String groupsTable = "groups_subscribed";
     private String serverTable = "servers";
+    private String groupsListTable = "groups";
     
     public DBManagerImpl(Properties p) {
         // get setup here
@@ -262,7 +263,7 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
      */
     public void createServerGroupList() throws Exception {
         SqlSession session = sqlFactory.openSession();
-        session.insert("createGroupListTable", groupsTable);
+        session.insert("createGroupListTable");
         session.commit();
         session.close();
     }
@@ -364,6 +365,18 @@ public class DBManagerImpl extends EventListenerImpl implements DBManager {
         session.close();
     }
 
+    
+    /**
+     * perform a sanity check to ensure needed tables exist in the 
+     * DB
+     * @throws Exception
+     */
+    public void sanityCheck() throws Exception {
+        createServerTable();
+        createServerGroups();
+        createServerGroupList();
+    }
+    
     // Utility methods follow ////
 
     private String calculateCutoff(Integer cutoff) {

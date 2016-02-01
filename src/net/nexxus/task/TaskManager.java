@@ -50,61 +50,23 @@ import net.nexxus.decode.DecodeManager;
 public class TaskManager implements Runnable {
     
     public static final String PROP_POOL_SIZE = "pool_size";
-    
     public static boolean isRunning = false;
     public static Vector queue = new Vector();    // used for incoming Tasks
+    
+    private int POOL_SIZE = ApplicationConstants.POOL_SIZE;        
+    private int DECODE_PRIORITY = 2;
+    private static int nextID = 0;
 
     private static TaskManager ref;
-    
-    private int POOL_SIZE = 3;        
-    
-    private int DECODE_PRIORITY = 2;  // should allow properties to define
-    private static int nextID = 0;
     public static Hashtable tasklist = new Hashtable();  // used for currently running tasks
-
     private static EventListenerList listenerList = new EventListenerList();
-    private ThreadPool pool = new ThreadPool("pool", POOL_SIZE);  // pool size from props and make setable
     private static DecodeManager decodeManager = DecodeManager.getInstance();
+    private ThreadPool pool = new ThreadPool("pool", POOL_SIZE);
     private Map threadMap = Collections.synchronizedMap(new HashMap());  // for mapping all threads to tasks
-    private String cacheDir = null;
-    private String downloadDir = null;
     
     private static Logger log = LogManager.getLogger(TaskManager.class.getName());
     
-    // c'tor - ensure singleton semantics
     private TaskManager() {
-        
-        // check for properties definitions
-        /*
-        Properties p = ComponentManager.getProperties();
-        if ( p.getProperty(PROP_POOL_SIZE) != null  ) {
-            String value = p.getProperty(PROP_POOL_SIZE);
-            int tmp = Integer.parseInt(value);
-            if ( tmp < 11 ) { // be safe
-                POOL_SIZE = tmp;
-                // redo ThreadPool
-                pool = new ThreadPool("pool", POOL_SIZE);
-            }
-        }
-        if ( p.getProperty("decoder_thread_priority") != null  ) {
-            String value = p.getProperty("decoder_thread_priority");
-            int tmp = Integer.parseInt(value);
-            if ( tmp < 11 ) { // be safe
-                DECODE_PRIORITY = tmp;
-            }
-        }
-        // configure decodeManager as well as ourself
-        if (p.getProperty("cache_dir") != null) {
-        	this.cacheDir = p.getProperty("cache_dir");
-        	this.decodeManager.setCacheDir(this.cacheDir);
-        	
-        }
-        if (p.getProperty("download_dir") != null) {
-        	this.downloadDir = p.getProperty("download_dir");
-        	this.decodeManager.setDownloadDir(this.downloadDir);
-        }
-        */
-	
         // add a Listener to our ThreadPool
         pool.addThreadPoolListener( new ThreadPoolListener() {
             public void threadStarted(ThreadPoolEvent e) {
@@ -316,6 +278,32 @@ public class TaskManager implements Runnable {
                 try {
                     final RunnableTask rt = (RunnableTask)queue.remove(0);
                     
+                    // if this is a UpdateHeadersTask, check to see if we 
+                    // are currently running the same update
+                    if (rt instanceof UpdateHeadersTask) {
+                        boolean skipTask = false;
+                        UpdateHeadersTask nextTask = (UpdateHeadersTask)rt;
+                        NntpGroup nextGroup = (NntpGroup)nextTask.getSource();
+                        Iterator<RunnableTask> itr = threadMap.values().iterator();
+                        while (itr.hasNext()) {
+                            RunnableTask task = itr.next();
+                            if (task instanceof UpdateHeadersTask) {
+                                UpdateHeadersTask updateTask = (UpdateHeadersTask)task;
+                                NntpGroup taskGroup = (NntpGroup)updateTask.getSource();
+                                if (taskGroup.getName().equals(nextGroup.getName())) {
+                                    log.debug("found a matching group for duplicate header update");
+                                    skipTask = true;
+                                }
+                            }
+                        }
+                        
+                        if (skipTask) {
+                            tasklist.remove(new Integer(rt.getTaskID()));
+                            fireEvent(new HeadersUpdateErrorEvent(rt));
+                            continue;
+                        }
+                    }
+                    
                     // add GUIEventListener here
                     // so the RunnableTask can receive events and 
                     // update the other GUI components
@@ -344,13 +332,11 @@ public class TaskManager implements Runnable {
                                 fireEvent(event);
                             }
                             
-                            /*
                             if ( event instanceof GroupsUpdatedEvent ) {
                                 NntpServer server = (NntpServer)event.getSource();
                                 tasklist.remove(new Integer(rt.getTaskID()));
                                 fireEvent(event);
                             }
-                            */
                             
                             if (event instanceof ArticleDownloadErrorEvent ) {
                                 DownloadArticleTask dat = (DownloadArticleTask)event.getSource();
@@ -418,6 +404,7 @@ public class TaskManager implements Runnable {
                 } 
                 catch (Exception e) {
                     log.error("fatal error");
+                    e.printStackTrace();
                 }
             } 
             else {	// queue size is 0
@@ -430,5 +417,4 @@ public class TaskManager implements Runnable {
             }
         } // end while true
     } // end run()
-    
 }

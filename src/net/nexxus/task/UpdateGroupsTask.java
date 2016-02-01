@@ -29,15 +29,14 @@ import org.apache.logging.log4j.Logger;
 //import net.nexxus.gui.task.TaskInfoPanel;
 
 import net.nexxus.nntp.NntpClient;
-import net.nexxus.nntp.NntpClientV2;
 import net.nexxus.nntp.NntpException;
 import net.nexxus.nntp.NntpGroup;
 import net.nexxus.nntp.NntpServer;
-import net.nexxus.util.ComponentManager;
 import net.nexxus.db.DBManager;
 import net.nexxus.event.EventListenerImpl;
 import net.nexxus.event.GroupsUpdateErrorEvent;
-import net.nexxus.gui.groups.ServerNode;
+import net.nexxus.event.GroupsUpdatedEvent;
+import net.nexxus.gui.task.TaskInfoPanel;
 
 public class UpdateGroupsTask extends EventListenerImpl implements RunnableTask {
 
@@ -73,7 +72,7 @@ public class UpdateGroupsTask extends EventListenerImpl implements RunnableTask 
     public void run() {
     	try {
             // add Listener hooks
-            //TaskInfoPanel.getInstance().registerTask( Thread.currentThread().getName(), this );
+            TaskInfoPanel.getInstance().registerTask( Thread.currentThread().getName(), this );
             //client.addGUIEventListener(new GUIEventListener() {
             //    public void eventOccurred(GUIEvent event) {
                     //if (event instanceof NewGroupEvent) {}
@@ -89,7 +88,7 @@ public class UpdateGroupsTask extends EventListenerImpl implements RunnableTask 
 	        catch (Exception e) {
 	            log.error("failed inserting NntpGroup List into groups table: " + e.getMessage() );
 	        }
-    	    //fireEvent( new GroupsUpdatedEvent(server) );
+    	    fireEvent( new GroupsUpdatedEvent(server) );
     	    log.debug("UpdateGroupsTask done");
     	} 
         catch (NntpException ne) {

@@ -30,6 +30,7 @@ import org.apache.logging.log4j.Logger;
 
 //import net.nexxus.task.TaskManager;
 import net.nexxus.task.RunnableTask;
+import net.nexxus.util.ApplicationConstants;
 //import net.nexxus.util.ComponentManager;
 
 /**
@@ -50,7 +51,7 @@ public class TaskInfoPanel extends JPanel implements Runnable {
     
     private TaskInfoPanel() {
         super();
-        int pool_size = 3;  // legacy value
+        int pool_size = ApplicationConstants.POOL_SIZE;  // legacy value
         /*
         Properties p = ComponentManager.getProperties();
         if ( p.getProperty(TaskManager.PROP_POOL_SIZE) != null  ) {

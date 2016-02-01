@@ -101,6 +101,7 @@ public class DBManagerImplTest extends BaseTest {
     // Server Group Tests //
     
     @Test
+    @Ignore
     public void testCreateServerGroups() {
         try {
             dbManager.createServerGroups();

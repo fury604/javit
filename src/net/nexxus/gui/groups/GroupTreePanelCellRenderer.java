@@ -68,7 +68,7 @@ public class GroupTreePanelCellRenderer extends DefaultTreeCellRenderer {
 			// default color
 			cell.setForeground(Color.BLACK);
 			if ( ! node.getNntpGroup().isAutoUpdate() ) {  
-				cell.setForeground(Color.GRAY); 
+				cell.setForeground(Color.LIGHT_GRAY); 
 			}
 
 			// indicate the group is current

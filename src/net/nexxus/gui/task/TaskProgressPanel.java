@@ -36,13 +36,16 @@ import net.nexxus.event.ArticleDownloadedEvent;
 import net.nexxus.event.GUIEventListener;
 import net.nexxus.event.GUIEvent;
 import net.nexxus.event.ArticlePartDownloadedEvent;
+import net.nexxus.event.GroupsUpdatedEvent;
 import net.nexxus.event.HeaderDownloadedEvent;
 import net.nexxus.event.HeadersUpdateErrorEvent;
 import net.nexxus.event.HeadersUpdatedEvent;
 import net.nexxus.nntp.NntpArticleHeader;
 import net.nexxus.nntp.NntpGroup;
+import net.nexxus.nntp.NntpServer;
 import net.nexxus.task.DownloadArticleTask;
 import net.nexxus.task.RunnableTask;
+import net.nexxus.task.UpdateGroupsTask;
 //import net.nexxus.task.DownloadArticleTask;
 import net.nexxus.task.UpdateHeadersTask;
 
@@ -143,6 +146,12 @@ public class TaskProgressPanel extends JPanel {
                         progressBar.setValue( ev.getNumber() );
                     }
                 }
+                
+                if (e instanceof GroupsUpdatedEvent) {
+                    label.setText(prefix);
+                    progressBar.setIndeterminate(false);
+                    progressBar.setValue(0);
+                }
             }
         });
         
@@ -155,6 +164,12 @@ public class TaskProgressPanel extends JPanel {
         if ( rt instanceof UpdateHeadersTask ) {
             NntpGroup group = (NntpGroup)rt.getSource();
             label.setText( prefix + " : updating headers for " + group.getName() );
+            this.progressBar.setIndeterminate(true);
+        }
+        
+        if (rt instanceof UpdateGroupsTask) {
+            NntpServer server = (NntpServer)rt.getSource();
+            label.setText( prefix + " : updating server groups for " + server.getServer() );
             this.progressBar.setIndeterminate(true);
         }
     }

@@ -62,7 +62,7 @@ import net.nexxus.util.ComponentManager;
 
 public class PanelFactory {
 
-	public static GroupTreePanel groupTreePanel = new GroupTreePanel();
+	public static GroupTreePanel groupTreePanel;
 	
 	private static TaskPanel taskPanel;
 	private static GroupsListPanel groupListPanel;
@@ -76,10 +76,19 @@ public class PanelFactory {
 
 	// default c'tor
 	public PanelFactory() { 
-	    // create and start a thread for our progressBar
-		//Thread pb = new Thread(progressBar);
-		//pb.start();
+
+	    // perform a sanity check first
+        try {
+            DBManager dbManager = componentManager.getDBManager();
+            dbManager.sanityCheck();
+        }
+        catch (Exception e) {
+            log.error("could perform DB Sanity check " + e.getMessage());
+        }
 	    
+        // safe to create groupTreePanel;
+        groupTreePanel = new GroupTreePanel();
+        
 	    // setup the splitpane
 		splitPane.add(getLeftSide());
 		splitPane.add(getRightSide());

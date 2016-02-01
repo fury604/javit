@@ -71,7 +71,6 @@ public class DecodeManager implements Runnable {
 
 	//// add item to queue
 	public synchronized void add(Task t) {
-		log.debug("adding task");
 		decodeQueue.add(t);
 	}
 
@@ -213,7 +212,7 @@ public class DecodeManager implements Runnable {
 			header.setStatus(NntpArticleHeader.STATUS_READ);
 		} 
 		catch (NotYencException nye) {				
-			//log.debug("not a yEnc encoding, possibly uuencoded " + nye.toString());
+			log.debug("not a yEnc encoding, possibly uuencoded " + nye.toString());
 			long timer = System.currentTimeMillis();
 			uudecodeMultipart(header);
 			log.debug("decoded file in : " + ((System.currentTimeMillis() - timer)/1000) );
@@ -325,10 +324,16 @@ public class DecodeManager implements Runnable {
                 log.debug("I GET : " + ids.length);
                 NntpArticlePartID currentPart = ids[x];
                 File myfile = this.getCacheFile(header, currentPart);
-                BufferedReader istream = new BufferedReader(new FileReader(myfile));
-                uu.setInputStream(istream); 
-                uu.decodeMultipart();
-                istream.close();
+                // debug test
+                if (!myfile.exists()) {
+                    log.debug("uudecode input segment missing on disk!");
+                }
+                else {
+                    BufferedReader istream = new BufferedReader(new FileReader(myfile));
+                    uu.setInputStream(istream); 
+                    uu.decodeMultipart();
+                    istream.close();
+                }
             }
             ostream.close();
         } 

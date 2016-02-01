@@ -131,38 +131,14 @@ public class DownloadArticleTask extends EventListenerImpl implements RunnableTa
                 } 
                 catch (NntpException ne) {
                     log.error("got exception retreiving multipart article: " + 
-                        ne.getMessage());
-                    try {
-                        client.disconnect();
-                    } 
-                    catch (NntpException e) {
-                    }
-
-                    cleanupCache(header);
-                    header.setStatus(header.STATUS_ERROR);
-                    dbManager.updateHeader(header);
-                    errorMsg = ne.getMessage();
-                    fireEvent(new ArticleDownloadErrorEvent(this));
-                    try {
-                        Thread.sleep(3000);
-                    } 
-                    catch (InterruptedException ie) {
-                    }
+                            ne.getMessage());
+                    handleException();
                     return;
                 } 
                 catch (NumberFormatException nfe) {
                     log.warn("got exception retreiving multipart article: " + 
                         nfe.toString());
-                    try {
-                        client.disconnect();
-                    } 
-                    catch (NntpException ne) {
-                    }
-                    cleanupCache(header);
-                    header.setStatus(header.STATUS_ERROR);
-                    dbManager.updateHeader(header);
-                    errorMsg = nfe.getMessage();
-                    fireEvent(new ArticleDownloadErrorEvent(this));
+                    handleException();
                     return;
                 }
             }
@@ -191,21 +167,7 @@ public class DownloadArticleTask extends EventListenerImpl implements RunnableTa
                 catch (Exception ne) {
                     log.warn("got exception retreiving singlepart article: " 
                         + ne.getMessage());
-                    try {
-                        client.disconnect();
-                    } 
-                    catch (NntpException en) {
-                    }
-                    cleanupCache(header);
-                    header.setStatus(header.STATUS_ERROR);
-                    dbManager.updateHeader(header);
-                    errorMsg = ne.getMessage();
-                    fireEvent(new ArticleDownloadErrorEvent(this));
-                    try { 
-                        Thread.sleep(3000); 
-                    } 
-                    catch (InterruptedException ie) {
-                    }
+                    handleException();
                     return;
                 }
             } 
@@ -237,32 +199,35 @@ public class DownloadArticleTask extends EventListenerImpl implements RunnableTa
             }
             
             client.disconnect();
-            fireEvent(new ArticleDownloadedEvent(this));
             
         } // end of initial try, phew!
         catch (Exception e) {
             log.warn("failed downloading article: " + header.getSubject() + " " 
                 + e.toString());
             e.printStackTrace();
-            try { 
-                client.disconnect(); 
-            } 
-            catch (NntpException ne) {
-                //log.error("failed disconnecting from server");
-                try { 
-                    Thread.sleep(3000); 
-                } 
-                catch (InterruptedException ie) {
-                }
-            }
-            errorMsg = e.getMessage();
-            header.setStatus(header.STATUS_ERROR);
-            dbManager.updateHeader(header);
-            fireEvent(new ArticleDownloadErrorEvent(this));
+            handleException();
             return;
         }
     }
     
+    private void handleException() {
+        try {
+            client.disconnect();
+        } 
+        catch (NntpException e) {
+        }
+
+        cleanupCache(header);
+        header.setStatus(header.STATUS_ERROR);
+        dbManager.updateHeader(header);
+        //errorMsg = ne.getMessage();
+        fireEvent(new ArticleDownloadErrorEvent(this));
+        try {
+            Thread.sleep(3000);
+        } 
+        catch (InterruptedException ie) {
+        }
+    }
     
     /**
      * remove unneeded files from our cache

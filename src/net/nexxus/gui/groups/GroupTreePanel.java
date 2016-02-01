@@ -111,6 +111,7 @@ public class GroupTreePanel extends JTree {
 		    }
 		} catch (Exception e) {
 			log.error("caught exception loading model from cache " + e.toString());
+			e.printStackTrace();
 		}
 
 		setCellRenderer(new GroupTreePanelCellRenderer());
@@ -330,10 +331,10 @@ public class GroupTreePanel extends JTree {
 	 * storeModel()
 	 *
 	 * @param listener
-	 */
 	public void storeModel() {
 		//ComponentManager.getCacheManager().storeGroupTreeModel(treeModel);
 	}
+     */
 
 	public void addGUIEventListener(GUIEventListener listener) {
 		listenerList.add(GUIEventListener.class, listener);
@@ -368,7 +369,7 @@ public class GroupTreePanel extends JTree {
 		public void run() {
 			rootNode = (RootNode)treeModel.getRoot();
 			int servers = treeModel.getChildCount(rootNode);
-			log.debug("in auti update found " + servers + " nodes in tree");
+			log.debug("in auto update found " + servers + " nodes in tree");
 			for (int x=0; x < servers; x++) {
 				ServerNode snode = (ServerNode)treeModel.getChild(rootNode, x);
 				int groups = treeModel.getChildCount(snode);
@@ -376,8 +377,15 @@ public class GroupTreePanel extends JTree {
 					GroupNode g = (GroupNode)treeModel.getChild(snode, y);
 					long elapsed = System.currentTimeMillis() - g.getLastUpdate();
 					log.debug("auto update time elapsed for " + g.getGroup() + " is " + elapsed);
+					log.debug("auto update value is " + g.getNntpGroup().isAutoUpdate());
 					if (g.getNntpGroup().isAutoUpdate() && elapsed > AUTO_INTERVAL) {
-						//TaskManager.getInstance().add(new UpdateHeadersTask(g.getNntpGroup(),snode.getServer()));
+					    DBManager dbManager = componentManager.getDBManager();
+					    NntpGroup group = g.getNntpGroup();
+					    NntpServer server = snode.getServer();
+                        NntpClient client = new NntpClientV2(server, dbManager);
+					    UpdateHeadersTask updateHeadersTask = 
+					            new UpdateHeadersTask(dbManager, client, group, server);
+						TaskManager.getInstance().add(updateHeadersTask);
 					}
 				}
 			}

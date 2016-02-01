@@ -75,4 +75,6 @@ public interface DBManager extends EventListenerInterface {
     
     public void removeServer(NntpServer server) throws Exception;
     
+    public void sanityCheck() throws Exception;
+    
 }

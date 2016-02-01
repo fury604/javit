@@ -36,5 +36,7 @@ public class ApplicationConstants {
     public static String HEADERS_DIR = "headers";
     
     public static String APP_CONFIG_FILE = "javit.conf";
+    
+    public static int POOL_SIZE = 6;
 
 }

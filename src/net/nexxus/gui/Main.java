@@ -31,6 +31,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
+import net.nexxus.db.DBManager;
 import net.nexxus.event.AutoUpdatesEvent;
 import net.nexxus.event.GUIEvent;
 import net.nexxus.event.GUIEventListener;
@@ -76,6 +77,7 @@ public class Main {
 			System.err.println("failed creating needed directories!");
 			System.exit(1);
 		}
+
 
 		//set up TaskManager Thread
 		TaskManager taskManager = TaskManager.getInstance();
@@ -126,11 +128,12 @@ public class Main {
 		 *
 		 * reloading the server groupsList on update
 		 * reloading headers in the ArticleTable after update
-		 */   
+		 */
         ComponentManager componentManager = new ComponentManager();
 		TaskManagerGUIEventListener taskManagerListener = 
 		        new TaskManagerGUIEventListener(panelFactory.getGroupTree(), componentManager.getDBManager());
 		taskManager.addGUIEventListener(taskManagerListener);
+		
 
 		// make frame visible
 		frame.setContentPane(panel);
